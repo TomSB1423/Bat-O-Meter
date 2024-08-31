@@ -25,9 +25,7 @@ class Window:
         cv2.waitKey(0)
         cv2.destroyWindow(self.WINDOW_NAME)
 
-    def display_images_side_by_side_with_overlay(
-        self, original, backgroundSubtractor, contour, extra_message
-    ):
+    def display_images_side_by_side_with_overlay(self, original, backgroundSubtractor, contour, extra_message):
         TEXT_OFFSET = (1200, 50)
         TEXT_COLOUR = (0, 108, 255)
         TEXT_FONT = 0.8
@@ -38,9 +36,7 @@ class Window:
             backgroundSubtractor.copy(),
             contour.copy(),
         )
-        original, backgroundSubtractor = self._match_dimensions(
-            original, backgroundSubtractor
-        )
+        original, backgroundSubtractor = self._match_dimensions(original, backgroundSubtractor)
         backgroundSubtractor = cv2.cvtColor(backgroundSubtractor, cv2.COLOR_BGR2HSV)
         cv2.putText(
             contour,
@@ -105,23 +101,18 @@ class Window:
         cv2.resizeWindow(self.WINDOW_NAME, self.window_width, self.window_height)
 
         # TODO: add mouse clicks to record position of birds
-        def mouse_callback(event, x, y, flags, params):
-            global mouseX, mouseY
-            if event == cv2.EVENT_LBUTTONDBLCLK:
-                cv2.circle(final_image, (x, y), 100, (255, 0, 0), -1)
-                mouseX, mouseY = x, y
-            if event == 2:
-                print(
-                    f"coords {x, y}, colors Blue- {final_image[y, x, 0]} , Green- {final_image[y, x, 1]}, Red- {final_image[y, x, 2]} "
-                )
+        # def mouse_callback(event, x, y, flags, params):
+        #     global mouseX, mouseY
+        #     if event == cv2.EVENT_LBUTTONDBLCLK:
+        #         cv2.circle(final_image, (x, y), 100, (255, 0, 0), -1)
+        #         mouseX, mouseY = x, y
+        #     if event == 2:
+        #         print(
+        #             f"coords {x, y}, colors Blue- {final_image[y, x, 0]} , Green- {final_image[y, x, 1]}, Red- {final_image[y, x, 2]} "
+        #         )
 
-        cv2.setMouseCallback(self.WINDOW_NAME, mouse_callback)
-        cv2.imshow(self.WINDOW_NAME, final_image)
-        k = cv2.waitKey(0) & 0xFF
-        if k == 27:
-            cv2.destroyWindow(self.WINDOW_NAME)
-            logger.info("Quit the program as escape was pressed")
-            quit()
+        # cv2.setMouseCallback(self.WINDOW_NAME, mouse_callback)
+        return final_image
 
     def _compute_dimensions(self):
         root = tk.Tk()
@@ -134,9 +125,7 @@ class Window:
     def _match_dimensions(self, img1, img2):
         img1 = cv2.resize(img1, (img2.shape[1], img2.shape[0]))
         if len(img1.shape) != len(img2.shape):
-            logger.debug(
-                f"Overlay shapes are not the same. Overlay {len(img1.shape)}, Background: {len(img2.shape)}"
-            )
+            logger.debug(f"Overlay shapes are not the same. Overlay {len(img1.shape)}, Background: {len(img2.shape)}")
         if len(img1.shape) == 2:
             img1 = cv2.cvtColor(img1, cv2.COLOR_BGRA2BGR)
         if len(img2.shape) == 2:
