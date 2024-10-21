@@ -1,12 +1,10 @@
 import logging
-from typing import Tuple
 
 import cv2
-from cv2.typing import MatLike
 
 from constants import *
 from frame import Frame
-from objectfinder import Object, ObjectFinder
+from objectfinder import ObjectFinder
 from tracker import *
 from utils import *
 from window import *
