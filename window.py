@@ -1,7 +1,8 @@
-import cv2
-import numpy as np
 import logging
 import tkinter as tk
+
+import cv2
+import numpy as np
 
 logger = logging.getLogger("Bat-O-Meter.window")
 
@@ -74,7 +75,10 @@ class ImageTransformer:
         )
         top_row = self.images_side_by_side(top_left_img, top_right_img, top_left_img_text, top_right_img_text)
         bottom_row = self.images_side_by_side(
-            bottom_left_img, bottom_right_img, bottom_left_img_text, bottom_right_img_text
+            bottom_left_img,
+            bottom_right_img,
+            bottom_left_img_text,
+            bottom_right_img_text,
         )
         final_image = np.vstack((top_row, bottom_row))
         cv2.putText(

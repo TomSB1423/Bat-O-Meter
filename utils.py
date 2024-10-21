@@ -1,13 +1,19 @@
-import cv2
 import logging
 import os
+from typing import Tuple
 
-logger = logging.getLogger("Bat-O-Meter.utils")
+import cv2
+from cv2.typing import MatLike
+
+from constants import *
+
+logger = logging.getLogger(f"{BATOMETER}.utils")
 
 
-def load_video(path):
+def load_video(path: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
     """Loads the video"""
     video = cv2.VideoCapture(path)
+    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
     width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(video.get(cv2.CAP_PROP_FPS))
@@ -18,7 +24,7 @@ def load_video(path):
     return video, width, height, fps, noFrames
 
 
-def caluclate_video_time_from_frame_num(frame_num, fps) -> str:
+def caluclate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
     hours = int(frame_num / (fps * 3600))
     minutes = int(frame_num / (fps * 60) % 60)
     seconds = int((frame_num / fps) % 60)
@@ -27,13 +33,19 @@ def caluclate_video_time_from_frame_num(frame_num, fps) -> str:
     return time
 
 
-def save_image_to_temp(img, frame_num):
+def save_image_to_temp(img: MatLike, frame_num: int) -> None:
     cv2.imwrite(
-        str(os.path.join(r"C:\Users\TSBus\OneDrive\Bat-O-Meter\batometer\.temp", f"frame-{frame_num}.png")), img
+        str(
+            os.path.join(
+                r"C:\Users\TSBus\OneDrive\Bat-O-Meter\batometer\.temp",
+                f"frame-{frame_num}.png",
+            )
+        ),
+        img,
     )
 
 
-def images_to_mp4(folder_path, output_video_path, fps):
+def images_to_mp4(folder_path: str, output_video_path: str, fps: int) -> None:
     # Get all image files from the folder
     image_files = [f for f in os.listdir(folder_path) if f.endswith((".png", ".jpg", ".jpeg"))]
 
