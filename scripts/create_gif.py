@@ -1,9 +1,10 @@
 from PIL import Image
 import os
 
+
 def create_gif(image_folder, output_path, duration=500, loop=0):
     # Get a list of all image files in the directory
-    images = [img for img in os.listdir(image_folder) if img.endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+    images = [img for img in os.listdir(image_folder) if img.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))]
 
     # Sort images to maintain the order
     images.sort(key=lambda f: int("".join(filter(str.isdigit, f))))
@@ -19,12 +20,13 @@ def create_gif(image_folder, output_path, duration=500, loop=0):
         save_all=True,
         append_images=frames[1:],
         duration=duration,  # Duration between frames in milliseconds
-        loop=loop  # 0 means loop forever
+        loop=loop,  # 0 means loop forever
     )
 
     print(f"GIF created successfully and saved to {output_path}")
 
+
 # Example usage
-image_folder = r'C:\Users\TSBus\OneDrive\Bat-O-Meter\batometer\tmpqzmb64bk'  # Replace with your image folder path
-output_path = 'output.gif'  # Replace with your desired output file path
+image_folder = r"C:\Users\TSBus\OneDrive\Bat-O-Meter\batometer\tmpqzmb64bk"  # Replace with your image folder path
+output_path = "output.gif"  # Replace with your desired output file path
 create_gif(image_folder, output_path)
