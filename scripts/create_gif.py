@@ -1,8 +1,9 @@
 from PIL import Image
 import os
+from pathlib import Path
 
 
-def create_gif(image_folder, output_path, duration=500, loop=0):
+def create_gif(image_folder, output_path, duration=60, loop=0):
     # Get a list of all image files in the directory
     images = [img for img in os.listdir(image_folder) if img.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))]
 
@@ -10,7 +11,7 @@ def create_gif(image_folder, output_path, duration=500, loop=0):
     images.sort(key=lambda f: int("".join(filter(str.isdigit, f))))
 
     # Load the images
-    frames = [Image.open(os.path.join(image_folder, image)) for image in images]
+    frames = [Image.open(os.path.join(image_folder, image)).convert("RGB") for image in images]
 
     print(f"Opened frames")
 
@@ -27,6 +28,6 @@ def create_gif(image_folder, output_path, duration=500, loop=0):
 
 
 # Example usage
-image_folder = r"C:\Users\TSBus\OneDrive\Bat-O-Meter\batometer\tmpqzmb64bk"  # Replace with your image folder path
+image_folder = os.path.join(Path(__file__).parent.parent, ".temp")
 output_path = "output.gif"  # Replace with your desired output file path
 create_gif(image_folder, output_path)
