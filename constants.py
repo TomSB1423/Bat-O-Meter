@@ -1,1 +1,0 @@
-BATOMETER = "Batometer"

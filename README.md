@@ -4,19 +4,30 @@ A project to see if it is possible to count bats using object detection methods
 
 # Overview
 
+![Overview](./assets/overview.png)
+
 This repository is currentlty structured to:
 
-1. Open video
-2. Iterate over each frame and detect moving objects
-3. Clean moving objects from noise
-4. Track real moving objects over successive frames
-5. (WIP) Understand the direction of each object
+1. Iterate over each frame of a video and detect moving objects
+2. Clean moving objects from noise
+3. Track real moving objects over successive frames
+4. (WIP) Understand the direction of each object
 
 Files:
 
 - `main.py` → runs program and cleans objects found
 - `objectfinder.py` → detects objects
 - `tracker.py` → tracks cleaned objects
+
+## Demo
+
+The project in its current state applies a background subtracter to isolate moving objects. Tracking and object identification is then needed.
+
+![Demo Gif](./assets/demo.gif)
+
+Individual isolations:
+
+![Demo](./assets/demo.png)
 
 # Installation
 
