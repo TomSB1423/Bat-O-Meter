@@ -11,12 +11,13 @@ from constants import *
 logger = logging.getLogger(f"{BATOMETER}.utils")
 
 
-def load_video(path: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
+def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
     """Loads the video"""
+    path = Path(path_str)
     if not os.path.isfile(path):
         logger.error(f"Video file does not exist: {path}")
         raise FileNotFoundError(f"Video file does not exist: {path}")
-    video = cv2.VideoCapture(path)
+    video = cv2.VideoCapture(str(path))
     video.set(cv2.CAP_PROP_POS_FRAMES, 0)
     width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
