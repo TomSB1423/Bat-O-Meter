@@ -1,0 +1,8 @@
+[tool.black]
+exclude = '''
+/(\.venv|\.git|\.mypy_cache|\.pytest_cache|build|dist)/
+'''
+line-length = 120
+
+[tool.isort]
+skip = ".venv"

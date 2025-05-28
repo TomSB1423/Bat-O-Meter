@@ -1,0 +1,6 @@
+pillow
+isort
+pytest
+black
+flake8
+mypy

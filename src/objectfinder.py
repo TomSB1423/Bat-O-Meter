@@ -1,9 +1,8 @@
 import logging
 from dataclasses import dataclass
-from typing import Tuple
 
 import cv2
-from cv2.typing import MatLike
+from cv2.typing import MatLike, Rect
 
 from constants import *
 from frame import Frame
@@ -51,8 +50,8 @@ class ObjectFinder:
 
     def _get_contours(self, frame: MatLike) -> list:
         contours, _ = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours_poly = [None] * len(contours)
-        boundRect = [None] * len(contours)
+        contours_poly: list[None | MatLike] = [None] * len(contours)
+        boundRect: list[None | Rect] = [None] * len(contours)
         detections = []
         for i, contour in enumerate(contours):
             # Get the centroid of the object
@@ -64,6 +63,10 @@ class ObjectFinder:
                 detections.append([x, y, w, h])
                 logger.debug(f"Found object x: {cx} y: {cy}")
                 # cv2.drawContours(contour_frame, contour, -1, (0, 255, 0), 3)
-                contours_poly[i] = cv2.approxPolyDP(contour, 3, True)
-                boundRect[i] = cv2.boundingRect(contours_poly[i])
+                approx = cv2.approxPolyDP(contour, 3, True)
+                contours_poly[i] = approx
+                if approx is None or len(approx) < 0:
+                    logger.warning("Could not approximate contour")
+                    continue
+                boundRect[i] = cv2.boundingRect(approx)
         return detections

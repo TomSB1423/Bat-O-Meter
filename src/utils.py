@@ -1,7 +1,7 @@
 import logging
 import os
-from typing import Tuple
 from pathlib import Path
+from typing import Tuple
 
 import cv2
 from cv2.typing import MatLike
@@ -69,7 +69,7 @@ def images_to_mp4(folder_path: str, output_video_path: str, fps: int) -> None:
     height, width, layers = frame.shape
 
     # Initialize the video writer
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec for MP4
+    fourcc = cv2.VideoWriter.fourcc(*"mp4v")  # Codec for MP4
     video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
 
     # Add each image to the video

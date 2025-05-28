@@ -1,6 +1,8 @@
-from PIL import Image
-from pathlib import Path
 import os
+from pathlib import Path
+
+from PIL import Image
+
 
 def create_gif(image_folder, output_path, duration=500, loop=0):
     # Get a list of all image files in the directory
@@ -12,7 +14,7 @@ def create_gif(image_folder, output_path, duration=500, loop=0):
     # Load the images
     frames = [Image.open(os.path.join(image_folder, image)) for image in images]
 
-    print(f"Opened frames")
+    print("Opened frames")
 
     # Save as GIF
     frames[0].save(

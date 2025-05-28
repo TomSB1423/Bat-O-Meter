@@ -1,6 +1,7 @@
-from PIL import Image
 import os
 from pathlib import Path
+
+from PIL import Image
 
 
 def create_gif(image_folder, output_path, duration=60, loop=0):
@@ -13,7 +14,7 @@ def create_gif(image_folder, output_path, duration=60, loop=0):
     # Load the images
     frames = [Image.open(os.path.join(image_folder, image)).convert("RGB") for image in images]
 
-    print(f"Opened frames")
+    print("Opened frames")
 
     # Save as GIF
     frames[0].save(

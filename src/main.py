@@ -1,5 +1,5 @@
-import logging
 import argparse
+import logging
 import os
 import sys
 
@@ -16,6 +16,7 @@ from window import *
 FORMAT = "%(asctime)s %(levelname)-8s %(message)s"
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(BATOMETER)
+
 
 def main(video_path: str):
     video, width, height, fps, noFrames = load_video(video_path)
@@ -79,6 +80,7 @@ def main(video_path: str):
 
     video.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     load_dotenv()
