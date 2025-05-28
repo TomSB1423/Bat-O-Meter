@@ -1,6 +1,10 @@
 import logging
+import argparse
+import os
+import sys
 
 import cv2
+from dotenv import load_dotenv
 
 from constants import *
 from frame import Frame
@@ -13,10 +17,11 @@ FORMAT = "%(asctime)s %(levelname)-8s %(message)s"
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(BATOMETER)
 
-
-if __name__ == "__main__":
-    VIDEO_PATH = r"C:\Users\TSBus\OneDrive\Bat-O-Meter\videos\batInThermal.mp4"
-    video, width, height, fps, noFrames = load_video(VIDEO_PATH)
+def main(video_path: str):
+    video, width, height, fps, noFrames = load_video(video_path)
+    if not video.isOpened():
+        logger.error(f"Failed to open video at {video_path}")
+        sys.exit(1)
     objectFinder = ObjectFinder()
     # objectFinder.initialise(video)
     tracker = EuclideanDistTracker()
@@ -71,3 +76,21 @@ if __name__ == "__main__":
         if key == 27:
             break
         save_image_to_temp(frame.frame, frame_num)
+
+    video.release()
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    load_dotenv()
+    parser = argparse.ArgumentParser(description="Bat-O-Meter video object detection and tracking")
+    parser.add_argument(
+        "--video-path",
+        type=str,
+        default=os.getenv("VIDEO_PATH"),
+        help="Path to the video file (or set VIDEO_PATH env variable)",
+    )
+    args = parser.parse_args()
+    if not args.video_path:
+        logger.error("No video path provided. Use --video-path or set VIDEO_PATH in .env.")
+        sys.exit(1)
+    main(args.video_path)
