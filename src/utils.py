@@ -7,9 +7,13 @@ import cv2
 from cv2.typing import MatLike
 
 from constants import *
+import shutil
 
 logger = logging.getLogger(f"{BATOMETER}.utils")
 
+TEMP_DIR = os.path.join(Path(__file__).parent.parent, ".temp")
+if os.path.exists(TEMP_DIR):
+    shutil.rmtree(TEMP_DIR)
 
 def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
     """Loads the video"""
@@ -24,12 +28,12 @@ def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
     fps = int(video.get(cv2.CAP_PROP_FPS))
     noFrames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     logger.info(
-        f"Video information // Width: {width} - Height: {height} - FPS: {fps} - numFrames: {noFrames} - Length: {caluclate_video_time_from_frame_num(noFrames, fps)}"
+        f"Video information // Width: {width} - Height: {height} - FPS: {fps} - numFrames: {noFrames} - Length: {calculate_video_time_from_frame_num(noFrames, fps)}"
     )
     return video, width, height, fps, noFrames
 
 
-def caluclate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
+def calculate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
     hours = int(frame_num / (fps * 3600))
     minutes = int(frame_num / (fps * 60) % 60)
     seconds = int((frame_num / fps) % 60)
@@ -39,16 +43,11 @@ def caluclate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
 
 
 def save_image_to_temp(img: MatLike, frame_num: int) -> None:
-    cv2.imwrite(
-        str(
-            os.path.join(
-                Path(__file__).parent.parent,
-                ".temp",
-                f"frame-{frame_num}.png",
-            )
-        ),
-        img,
-    )
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    path = os.path.join(TEMP_DIR, f"frame-{frame_num}.png")
+    if not cv2.imwrite(path, img):
+        raise Exception("Could not save image")
+    logger.debug(f"Saved frame no.{frame_num} to {path}")
 
 
 def images_to_mp4(folder_path: str, output_video_path: str, fps: int) -> None:

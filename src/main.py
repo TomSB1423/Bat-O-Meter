@@ -34,7 +34,7 @@ def main(video_path: str):
         if not ret:
             logger.error(f"Can't receive frame (stream end?). FrameNum: {frame_num}. Exiting ...")
             break
-        frame_time = caluclate_video_time_from_frame_num(frame_num, fps)
+        frame_time = calculate_video_time_from_frame_num(frame_num, fps)
         frame = Frame(vid_frame, frame_num)
         logger.info(f"Opened frame: {frame_num}/{noFrames} - time: {frame_time}")
 
@@ -76,7 +76,7 @@ def main(video_path: str):
         key = cv2.waitKey(30)
         if key == 27:
             break
-        save_image_to_temp(frame.frame, frame_num)
+        # save_image_to_temp(frame.frame, frame_num)
 
     video.release()
     cv2.destroyAllWindows()

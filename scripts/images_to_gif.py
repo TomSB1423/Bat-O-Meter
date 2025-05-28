@@ -6,7 +6,9 @@ from PIL import Image
 
 def create_gif(image_folder, output_path, duration=500, loop=0):
     # Get a list of all image files in the directory
-    images = [img for img in os.listdir(image_folder) if img.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))]
+    images = [
+        img for img in os.listdir(image_folder) if img.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif"))
+    ]
 
     # Sort images to maintain the order
     images.sort(key=lambda f: int("".join(filter(str.isdigit, f))))

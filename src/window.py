@@ -123,7 +123,9 @@ class ImageTransformer:
     def _match_dimensions_to_img1(self, img1, img2):
         img1 = cv2.resize(img1, (img2.shape[1], img2.shape[0]))
         if len(img1.shape) != len(img2.shape):
-            logger.debug(f"Overlay shapes are not the same. Overlay {len(img1.shape)}, Background: {len(img2.shape)}")
+            logger.debug(
+                f"Overlay shapes are not the same. Overlay {len(img1.shape)}, Background: {len(img2.shape)}"
+            )
         if len(img1.shape) == 2:
             img1 = cv2.cvtColor(img1, cv2.COLOR_BGRA2BGR)
         if len(img2.shape) == 2:
