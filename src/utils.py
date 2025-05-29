@@ -7,7 +7,7 @@ from typing import Tuple
 import cv2
 from cv2.typing import MatLike
 
-from constants import BATOMETER
+from .constants import BATOMETER
 
 logger = logging.getLogger(f"{BATOMETER}.utils")
 

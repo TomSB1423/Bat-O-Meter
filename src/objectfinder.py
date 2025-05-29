@@ -4,9 +4,9 @@ from typing import List
 import cv2
 from cv2.typing import MatLike
 
-from constants import BATOMETER
-from detectionObject import DetectionObject
-from frame import Frame
+from .constants import BATOMETER
+from .detectionObject import DetectionObject
+from .frame import Frame
 
 logger = logging.getLogger(f"{BATOMETER}.ObjectFinder")
 

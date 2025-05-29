@@ -2,8 +2,8 @@ import logging
 import math
 from typing import Dict, List
 
-from constants import BATOMETER
-from detectionObject import DetectionObject, IdentifiedObject, Point
+from .constants import BATOMETER
+from .detectionObject import DetectionObject, IdentifiedObject, Point
 
 logger = logging.getLogger(f"{BATOMETER}.EuclideanDistTracker")
 
@@ -46,7 +46,6 @@ class EuclideanDistTracker:
 
                 if dist < 50:
                     self.center_points[id] = obj.center_point
-                    print(self.center_points)
                     identified_objects.append(IdentifiedObject(id, obj))
                     same_object_detected = True
                     break

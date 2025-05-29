@@ -21,7 +21,7 @@ def images_to_mp4(folder_path, output_video_path, fps):
     height, width, layers = frame.shape
 
     # Initialize the video writer
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec for MP4
+    fourcc = cv2.VideoWriter.fourcc(*"mp4v")  # Codec for MP4
     video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
 
     # Add each image to the video
