@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from typing import List
 
 import cv2
 from cv2.typing import MatLike, Rect
@@ -20,9 +21,16 @@ class Object:
 
 
 class ObjectFinder:
+    """
+    Detects moving objects in video frames using background subtraction and contour detection.
+    """
+
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
     def __init__(self) -> None:
+        """
+        Initializes the background subtractor for object detection.
+        """
         self.backgroundSub = cv2.createBackgroundSubtractorMOG2(
             history=500,  # no. frames to keep
             varThreshold=100,  # sensitivity of
@@ -30,7 +38,12 @@ class ObjectFinder:
         )
 
     def initialise(self, video: cv2.VideoCapture) -> None:
-        # Priming with initial frames (background should be stable)
+        """
+        Primes the background subtractor with initial frames to stabilize the background model.
+
+        Args:
+            video (cv2.VideoCapture): The video capture object to read frames from.
+        """
         logger.info("Priming background subtractor...")
         initial_frame_count = 500
         for _ in range(initial_frame_count):
@@ -41,7 +54,16 @@ class ObjectFinder:
             self.backgroundSub.apply(frame)
         logger.info("Successfully primed background subtractor")
 
-    def update(self, frame: Frame) -> list[DetectionObject]:
+    def update(self, frame: Frame) -> List[DetectionObject]:
+        """
+        Updates the object finder with a new frame and returns detected objects.
+
+        Args:
+            frame (Frame): The current video frame.
+
+        Returns:
+            List[DetectionObject]: List of detected objects in the frame.
+        """
         # Create the foreground mask
         fgmask = self.backgroundSub.apply(frame.frame)
         fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, self.kernel)
@@ -49,9 +71,18 @@ class ObjectFinder:
         detections = self._get_contours(fgmask)
         return detections
 
-    def _get_contours(self, frame: MatLike) -> list[DetectionObject]:
+    def _get_contours(self, frame: MatLike) -> List[DetectionObject]:
+        """
+        Finds contours in the mask and returns DetectionObject instances for each contour.
+
+        Args:
+            frame (MatLike): The binary mask image.
+
+        Returns:
+            List[DetectionObject]: List of detected objects from contours.
+        """
         contours, _ = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        detections: list[DetectionObject] = []
+        detections: List[DetectionObject] = []
         for _, contour in enumerate(contours):
             # Get the centroid of the object
             M = cv2.moments(contour)

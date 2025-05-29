@@ -3,21 +3,36 @@ import tkinter as tk
 
 import cv2
 import numpy as np
+from cv2.typing import MatLike
 
 logger = logging.getLogger("Bat-O-Meter.window")
 
 
 class ImageTransformer:
+    """
+    Provides image transformation and display utilities for Bat-O-Meter visualizations.
+    """
+
     TEXT_OFFSET = (1200, 50)
     TEXT_COLOUR = (0, 108, 255)
     TEXT_FONT = 0.8
     TEXT_FONT_FACE = cv2.FONT_HERSHEY_COMPLEX
     TEXT_THICKNESS = 2
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initializes the ImageTransformer and computes window dimensions.
+        """
         self.window_width, self.window_height = self._compute_dimensions()
 
-    def show_frame(self, window_name, img):
+    def show_frame(self, window_name: str, img: MatLike) -> None:
+        """
+        Displays a frame in a resizable OpenCV window.
+
+        Args:
+            window_name (str): Name of the window.
+            img (MatLike): Image to display.
+        """
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(window_name, self.window_width, self.window_height)
         cv2.imshow(window_name, img)
@@ -27,12 +42,34 @@ class ImageTransformer:
             logger.info("Quit the program as escape was pressed")
             quit()
 
-    def overlay_two_images(self, background, overlay):
+    def overlay_two_images(self, background: MatLike, overlay: MatLike) -> MatLike:
+        """
+        Overlays one image on top of another, matching dimensions as needed.
+
+        Args:
+            background (MatLike): Background image.
+            overlay (MatLike): Overlay image.
+
+        Returns:
+            MatLike: Combined image.
+        """
         background, overlay = background.copy(), overlay.copy()
         background, overlay = self._match_dimensions_to_img1(background, overlay)
         return self._overlay_transparent(background, overlay)
 
-    def images_side_by_side(self, img1, img2, img1_text, img2_text):
+    def images_side_by_side(self, img1: MatLike, img2: MatLike, img1_text: str, img2_text: str) -> MatLike:
+        """
+        Concatenates two images side by side and overlays text labels.
+
+        Args:
+            img1 (MatLike): First image.
+            img2 (MatLike): Second image.
+            img1_text (str): Label for the first image.
+            img2_text (str): Label for the second image.
+
+        Returns:
+            MatLike: Side-by-side image.
+        """
         img1, img2 = self._match_dimensions_to_img1(img1, img2)
         cv2.putText(
             img1,
@@ -57,16 +94,33 @@ class ImageTransformer:
 
     def images_quadrant(
         self,
-        top_left_img,
-        top_right_img,
-        bottom_left_img,
-        bottom_right_img,
-        top_left_img_text,
-        top_right_img_text,
-        bottom_left_img_text,
-        bottom_right_img_text,
-        center_text,
-    ):
+        top_left_img: MatLike,
+        top_right_img: MatLike,
+        bottom_left_img: MatLike,
+        bottom_right_img: MatLike,
+        top_left_img_text: str,
+        top_right_img_text: str,
+        bottom_left_img_text: str,
+        bottom_right_img_text: str,
+        center_text: str,
+    ) -> MatLike:
+        """
+        Arranges four images in a quadrant layout with text labels and a center label.
+
+        Args:
+            top_left_img (MatLike): Top-left image.
+            top_right_img (MatLike): Top-right image.
+            bottom_left_img (MatLike): Bottom-left image.
+            bottom_right_img (MatLike): Bottom-right image.
+            top_left_img_text (str): Label for top-left image.
+            top_right_img_text (str): Label for top-right image.
+            bottom_left_img_text (str): Label for bottom-left image.
+            bottom_right_img_text (str): Label for bottom-right image.
+            center_text (str): Center label text.
+
+        Returns:
+            MatLike: Quadrant-arranged image.
+        """
         top_left_img, top_right_img, bottom_left_img, bottom_right_img = (
             top_left_img.copy(),
             top_right_img.copy(),

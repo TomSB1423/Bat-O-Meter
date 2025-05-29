@@ -3,6 +3,14 @@ from dataclasses import dataclass
 
 @dataclass
 class Point:
+    """
+    Represents a 2D point in image coordinates.
+
+    Attributes:
+        x (int): X-coordinate.
+        y (int): Y-coordinate.
+    """
+
     x: int
     y: int
 
@@ -27,7 +35,7 @@ class DetectionObject:
     @property
     def center_point(self) -> Point:
         """
-        Returns the center (x, y) of the bounding box as a named tuple.
+        Returns the center (x, y) of the bounding box as a Point.
         """
         return Point((self.x + self.x + self.width) // 2, (self.y + self.y + self.height) // 2)
 
@@ -44,6 +52,13 @@ class IdentifiedObject(DetectionObject):
 
     id: int
 
-    def __init__(self, id: int, detectionObject: DetectionObject):
+    def __init__(self, id: int, detectionObject: DetectionObject) -> None:
+        """
+        Initialize an IdentifiedObject from a DetectionObject and an id.
+
+        Args:
+            id (int): Unique identifier for the object.
+            detectionObject (DetectionObject): The detected object to copy bounding box from.
+        """
         super().__init__(detectionObject.x, detectionObject.y, detectionObject.width, detectionObject.height)
         self.id = id

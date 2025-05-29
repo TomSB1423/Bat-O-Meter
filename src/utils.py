@@ -17,7 +17,22 @@ if os.path.exists(TEMP_DIR):
 
 
 def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
-    """Loads the video"""
+    """
+    Loads a video from the given path and returns the video capture object and its properties.
+
+    Args:
+        path_str (str): Path to the video file.
+
+    Returns:
+        Tuple[cv2.VideoCapture, int, int, int, int]:
+            - video (cv2.VideoCapture): The video capture object.
+            - width (int): Frame width.
+            - height (int): Frame height.
+            - fps (int): Frames per second.
+            - noFrames (int): Total number of frames.
+    Raises:
+        FileNotFoundError: If the video file does not exist.
+    """
     path = Path(path_str)
     if not os.path.isfile(path):
         logger.error(f"Video file does not exist: {path}")
@@ -35,6 +50,16 @@ def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
 
 
 def calculate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
+    """
+    Calculates the video time string from a frame number and fps.
+
+    Args:
+        frame_num (int): The frame number.
+        fps (int): Frames per second.
+
+    Returns:
+        str: Time in HH:MM:SS:MS format.
+    """
     hours = int(frame_num / (fps * 3600))
     minutes = int(frame_num / (fps * 60) % 60)
     seconds = int((frame_num / fps) % 60)
@@ -44,6 +69,15 @@ def calculate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
 
 
 def save_image_to_temp(img: MatLike, frame_num: int) -> None:
+    """
+    Saves an image to the temporary directory with the frame number in the filename.
+
+    Args:
+        img (MatLike): The image to save.
+        frame_num (int): The frame number for the filename.
+    Raises:
+        Exception: If the image could not be saved.
+    """
     os.makedirs(TEMP_DIR, exist_ok=True)
     path = os.path.join(TEMP_DIR, f"frame-{frame_num}.png")
     if not cv2.imwrite(path, img):
@@ -52,6 +86,14 @@ def save_image_to_temp(img: MatLike, frame_num: int) -> None:
 
 
 def images_to_mp4(folder_path: str, output_video_path: str, fps: int) -> None:
+    """
+    Converts a sequence of images in a folder to an MP4 video.
+
+    Args:
+        folder_path (str): Path to the folder containing images.
+        output_video_path (str): Path to save the output video.
+        fps (int): Frames per second for the output video.
+    """
     # Get all image files from the folder
     image_files = [f for f in os.listdir(folder_path) if f.endswith((".png", ".jpg", ".jpeg"))]
 

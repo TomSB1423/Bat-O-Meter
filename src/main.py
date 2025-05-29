@@ -7,7 +7,7 @@ import cv2
 from dotenv import load_dotenv
 
 from constants import *
-from detectionObject import DetectionObject
+from detectionObject import DetectionObject, IdentifiedObject
 from frame import Frame
 from objectfinder import ObjectFinder
 from tracker import *
@@ -19,7 +19,13 @@ logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(BATOMETER)
 
 
-def main(video_path: str):
+def main(video_path: str) -> None:
+    """
+    Main entry point for Bat-O-Meter. Loads a video, detects and tracks objects frame by frame.
+
+    Args:
+        video_path (str): Path to the video file to process.
+    """
     video, width, height, fps, noFrames = load_video(video_path)
     if not video.isOpened():
         logger.error(f"Failed to open video at {video_path}")
@@ -40,7 +46,7 @@ def main(video_path: str):
         logger.info(f"Opened frame: {frame_num}/{noFrames} - time: {frame_time}")
 
         # Find objects
-        detections = objectFinder.update(frame)
+        detections: list[DetectionObject] = objectFinder.update(frame)
         for detection in detections:
             cv2.rectangle(
                 frame.frame,
@@ -54,7 +60,7 @@ def main(video_path: str):
         next_frame = frame_num + 1
         video.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
         _, fut_frame = video.read()
-        future_detections = objectFinder.update(Frame(fut_frame, next_frame))
+        future_detections: list[DetectionObject] = objectFinder.update(Frame(fut_frame, next_frame))
         cleaned_detections: list[DetectionObject] = []
         for detection in detections:
             for fut_detection in future_detections:
@@ -64,7 +70,7 @@ def main(video_path: str):
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
 
         # Track objects
-        tracked_detections = tracker.update(cleaned_detections)
+        tracked_detections: list[IdentifiedObject] = tracker.update(cleaned_detections)
 
         # Display tracked detections
         for detection in tracked_detections:
@@ -95,6 +101,9 @@ def main(video_path: str):
 
 
 if __name__ == "__main__":
+    """
+    Command-line interface entry point for Bat-O-Meter. Parses arguments and starts main processing.
+    """
     load_dotenv()
     parser = argparse.ArgumentParser(description="Bat-O-Meter video object detection and tracking")
     parser.add_argument(
