@@ -8,7 +8,7 @@ import cv2
 from dotenv import load_dotenv
 
 from .constants import BATOMETER
-from .detectionObject import DetectionObject, IdentifiedObject
+from .detectionObject import Detection, IdentifiedObject
 from .frame import Frame
 from .objectfinder import ObjectFinder
 from .tracker import EuclideanDistTracker
@@ -32,7 +32,7 @@ def main(video_path: str) -> None:
         logger.error(f"Failed to open video at {video_path}")
         sys.exit(1)
     objectFinder = ObjectFinder()
-    objectFinder.initialise(video)
+    # objectFinder.initialise(video)
     tracker = EuclideanDistTracker()
     img_transformer = ImageTransformer()
 
@@ -47,7 +47,7 @@ def main(video_path: str) -> None:
         logger.info(f"Opened frame: {frame_num}/{noFrames} - time: {frame_time}")
 
         # Find objects
-        detections: list[DetectionObject] = objectFinder.update(frame)
+        detections: list[Detection] = objectFinder.update(frame)
         for detection in detections:
             cv2.rectangle(
                 frame.frame,
@@ -61,12 +61,13 @@ def main(video_path: str) -> None:
         next_frame = frame_num + 1
         video.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
         _, fut_frame = video.read()
-        future_detections: list[DetectionObject] = objectFinder.update(Frame(fut_frame, next_frame))
-        cleaned_detections: list[DetectionObject] = []
+        max_movement_dist = 100
+        future_detections: list[Detection] = objectFinder.update(Frame(fut_frame, next_frame))
+        cleaned_detections: list[Detection] = []
         for detection in detections:
             for fut_detection in future_detections:
-                dist = math.hypot(detection.x - fut_detection.x, detection.y - fut_detection.y)
-                if dist < 100:
+                movement_dist = math.hypot(detection.x - fut_detection.x, detection.y - fut_detection.y)
+                if movement_dist < max_movement_dist:
                     cleaned_detections.append(detection)
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
 

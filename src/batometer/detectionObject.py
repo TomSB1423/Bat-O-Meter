@@ -1,3 +1,5 @@
+from typing import List
+
 from dataclasses import dataclass
 
 
@@ -16,9 +18,9 @@ class Point:
 
 
 @dataclass
-class DetectionObject:
+class Detection:
     """
-    Represents a detected object in a video frame.
+    Represents a detection in a video frame.
 
     Attributes:
         x (int): X-coordinate of the top-left corner of the bounding box.
@@ -32,18 +34,11 @@ class DetectionObject:
     width: int
     height: int
 
-    @property
-    def center_point(self) -> Point:
-        """
-        Returns the center (x, y) of the bounding box as a Point.
-        """
-        return Point((self.x + self.x + self.width) // 2, (self.y + self.y + self.height) // 2)
-
 
 @dataclass
-class IdentifiedObject(DetectionObject):
+class IdentifiedObject(Detection):
     """
-    Represents a detected object with an assigned unique identifier.
+    Represents an identified object with an assigned unique identifier.
 
     Attributes:
         id (int): Unique identifier for the detected object.
@@ -51,8 +46,9 @@ class IdentifiedObject(DetectionObject):
     """
 
     id: int
+    history: List[Point]
 
-    def __init__(self, id: int, detectionObject: DetectionObject) -> None:
+    def __init__(self, id: int, detectionObject: Detection) -> None:
         """
         Initialize an IdentifiedObject from a DetectionObject and an id.
 
@@ -62,3 +58,7 @@ class IdentifiedObject(DetectionObject):
         """
         super().__init__(detectionObject.x, detectionObject.y, detectionObject.width, detectionObject.height)
         self.id = id
+        self.history = [Point(detectionObject.x, detectionObject.y)]
+
+    def update_location(self, point: Point) -> None:
+        self.history.append(point)

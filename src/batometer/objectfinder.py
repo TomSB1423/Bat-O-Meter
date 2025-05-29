@@ -5,7 +5,7 @@ import cv2
 from cv2.typing import MatLike
 
 from .constants import BATOMETER
-from .detectionObject import DetectionObject
+from .detectionObject import Detection
 from .frame import Frame
 
 logger = logging.getLogger(f"{BATOMETER}.ObjectFinder")
@@ -45,7 +45,7 @@ class ObjectFinder:
             self.backgroundSub.apply(frame)
         logger.info("Successfully primed background subtractor")
 
-    def update(self, frame: Frame) -> List[DetectionObject]:
+    def update(self, frame: Frame) -> List[Detection]:
         """
         Updates the object finder with a new frame and returns detected objects.
 
@@ -62,7 +62,7 @@ class ObjectFinder:
         detections = self._get_contours(fgmask)
         return detections
 
-    def _get_contours(self, frame: MatLike) -> List[DetectionObject]:
+    def _get_contours(self, frame: MatLike) -> List[Detection]:
         """
         Finds contours in the mask and returns DetectionObject instances for each contour.
 
@@ -73,7 +73,7 @@ class ObjectFinder:
             List[DetectionObject]: List of detected objects from contours.
         """
         contours, _ = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        detections: List[DetectionObject] = []
+        detections: List[Detection] = []
         for _, contour in enumerate(contours):
             # Get the centroid of the object
             M = cv2.moments(contour)
@@ -82,6 +82,6 @@ class ObjectFinder:
                 cy = int(M["m01"] / M["m00"])
                 logger.debug(f"Found object x: {cx} y: {cy}")
                 x, y, w, h = cv2.boundingRect(contour)
-                detections.append(DetectionObject(x, y, w, h))
+                detections.append(Detection(x, y, w, h))
                 # cv2.drawContours(contour_frame, contour, -1, (0, 255, 0), 3)
         return detections

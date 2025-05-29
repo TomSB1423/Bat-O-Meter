@@ -5,8 +5,8 @@
       "name": "Run Bat-O-Meter",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/src/main.py",
-      "console": "integratedTerminal",
+      "module": "batometer.main",
+      "cwd": "${workspaceFolder}/src",
       "envFile": "${workspaceFolder}/.env"
     }
   ]
