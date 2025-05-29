@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from constants import *
+from constants import BATOMETER
 
 logger = logging.getLogger(f"{BATOMETER}.ContourConsolidator")
 

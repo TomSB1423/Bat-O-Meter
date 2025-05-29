@@ -1,23 +1,14 @@
 import logging
-from dataclasses import dataclass
 from typing import List
 
 import cv2
-from cv2.typing import MatLike, Rect
+from cv2.typing import MatLike
 
-from constants import *
+from constants import BATOMETER
 from detectionObject import DetectionObject
 from frame import Frame
 
 logger = logging.getLogger(f"{BATOMETER}.ObjectFinder")
-
-
-@dataclass(frozen=True)
-class Object:
-    x: int
-    y: int
-    w: int
-    h: int
 
 
 class ObjectFinder:

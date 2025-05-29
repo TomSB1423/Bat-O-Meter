@@ -159,7 +159,7 @@ class ImageTransformer:
 
         # cv2.setMouseCallback(self.WINDOW_NAME, mouse_callback)
 
-    def scale_frame_to_monitor(self, frame):
+    def scale_frame_to_monitor(self, frame: MatLike) -> None:
         height, width = frame.shape[:2]
         scale_factor = min(self.window_width / width, self.window_height / height)
         new_width = int(width * scale_factor)
@@ -174,11 +174,12 @@ class ImageTransformer:
         root.destroy()
         return screen_width - 100, screen_height - 100
 
-    def _match_dimensions_to_img1(self, img1, img2):
+    def _match_dimensions_to_img1(self, img1: MatLike, img2: MatLike):
         img1 = cv2.resize(img1, (img2.shape[1], img2.shape[0]))
         if len(img1.shape) != len(img2.shape):
             logger.debug(
-                f"Overlay shapes are not the same. Overlay {len(img1.shape)}, Background: {len(img2.shape)}"
+                f"Overlay shapes are not the same. Overlay {len(img1.shape)}, "
+                f"Background: {len(img2.shape)}"
             )
         if len(img1.shape) == 2:
             img1 = cv2.cvtColor(img1, cv2.COLOR_BGRA2BGR)
@@ -186,7 +187,7 @@ class ImageTransformer:
             img2 = cv2.cvtColor(img2, cv2.COLOR_BGRA2BGR)
         return img1, img2
 
-    def _overlay_transparent(self, background, overlay):
+    def _overlay_transparent(self, background: MatLike, overlay: MatLike) -> MatLike:
         alpha = 0.5
         blended = cv2.addWeighted(overlay, alpha, background, 1 - alpha, 0)
         return blended

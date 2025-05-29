@@ -2,7 +2,7 @@ import logging
 import math
 from typing import Dict, List
 
-from constants import *
+from constants import BATOMETER
 from detectionObject import DetectionObject, IdentifiedObject, Point
 
 logger = logging.getLogger(f"{BATOMETER}.EuclideanDistTracker")

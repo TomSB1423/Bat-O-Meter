@@ -7,7 +7,7 @@ from typing import Tuple
 import cv2
 from cv2.typing import MatLike
 
-from constants import *
+from constants import BATOMETER
 
 logger = logging.getLogger(f"{BATOMETER}.utils")
 
@@ -44,7 +44,8 @@ def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
     fps = int(video.get(cv2.CAP_PROP_FPS))
     noFrames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     logger.info(
-        f"Video information // Width: {width} - Height: {height} - FPS: {fps} - numFrames: {noFrames} - Length: {calculate_video_time_from_frame_num(noFrames, fps)}"
+        f"Video information // Width: {width} - Height: {height} - FPS: {fps} - numFrames: {noFrames} - "
+        f"Length: {calculate_video_time_from_frame_num(noFrames, fps)}"
     )
     return video, width, height, fps, noFrames
 
