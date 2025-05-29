@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from pathlib import Path
 from typing import Tuple
 
@@ -7,13 +8,13 @@ import cv2
 from cv2.typing import MatLike
 
 from constants import *
-import shutil
 
 logger = logging.getLogger(f"{BATOMETER}.utils")
 
 TEMP_DIR = os.path.join(Path(__file__).parent.parent, ".temp")
 if os.path.exists(TEMP_DIR):
     shutil.rmtree(TEMP_DIR)
+
 
 def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
     """Loads the video"""

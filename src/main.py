@@ -7,6 +7,7 @@ import cv2
 from dotenv import load_dotenv
 
 from constants import *
+from detectionObject import DetectionObject
 from frame import Frame
 from objectfinder import ObjectFinder
 from tracker import *
@@ -24,7 +25,7 @@ def main(video_path: str):
         logger.error(f"Failed to open video at {video_path}")
         sys.exit(1)
     objectFinder = ObjectFinder()
-    # objectFinder.initialise(video)
+    objectFinder.initialise(video)
     tracker = EuclideanDistTracker()
     img_transformer = ImageTransformer()
 
@@ -40,18 +41,24 @@ def main(video_path: str):
 
         # Find objects
         detections = objectFinder.update(frame)
+        for detection in detections:
+            cv2.rectangle(
+                frame.frame,
+                (detection.x, detection.y),
+                (detection.x + detection.width, detection.y + detection.height),
+                (0, 0, 255),
+                3,
+            )
 
         # Clean bogus detections by looking in the future
         next_frame = frame_num + 1
         video.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
         _, fut_frame = video.read()
         future_detections = objectFinder.update(Frame(fut_frame, next_frame))
-        cleaned_detections = []
+        cleaned_detections: list[DetectionObject] = []
         for detection in detections:
-            x1, y1, _, _ = detection
             for fut_detection in future_detections:
-                x2, y2, _, _ = fut_detection
-                dist = math.hypot(x1 - x2, y1 - y2)
+                dist = math.hypot(detection.x - fut_detection.x, detection.y - fut_detection.y)
                 if dist < 100:
                     cleaned_detections.append(detection)
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
@@ -61,17 +68,22 @@ def main(video_path: str):
 
         # Display tracked detections
         for detection in tracked_detections:
-            x, y, w, h, id = detection
             cv2.putText(
                 frame.frame,
-                str(id),
-                (x, y - 15),
+                str(detection.id),
+                (detection.x, detection.y - 15),
                 cv2.FONT_HERSHEY_PLAIN,
                 2,
                 (255, 0, 0),
                 2,
             )
-            cv2.rectangle(frame.frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            cv2.rectangle(
+                frame.frame,
+                (detection.x, detection.y),
+                (detection.x + detection.width, detection.y + detection.height),
+                (0, 255, 0),
+                3,
+            )
         cv2.imshow("main", frame.frame)
         key = cv2.waitKey(30)
         if key == 27:
