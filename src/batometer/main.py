@@ -72,7 +72,7 @@ def main(video_path: str) -> None:
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
 
         # Track objects
-        tracked_detections: list[IdentifiedObject] = tracker.update(cleaned_detections)
+        tracked_detections: list[IdentifiedObject] = tracker.update(cleaned_detections, frame_num)
 
         # Display tracked detections
         for detection in tracked_detections:

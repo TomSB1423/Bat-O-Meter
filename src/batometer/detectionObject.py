@@ -1,6 +1,5 @@
-from typing import List
-
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass
@@ -15,6 +14,9 @@ class Point:
 
     x: int
     y: int
+    
+    def __hash__(self):
+        return hash((self.x, self.y))
 
 
 @dataclass
@@ -33,6 +35,9 @@ class Detection:
     y: int
     width: int
     height: int
+    
+    def __hash__(self):
+        return hash((self.x, self.y, self.width, self.height))
 
 
 @dataclass
@@ -46,7 +51,7 @@ class IdentifiedObject(Detection):
     """
 
     id: int
-    history: List[Point]
+    history: List[Point | None]
 
     def __init__(self, id: int, detectionObject: Detection) -> None:
         """
@@ -59,6 +64,14 @@ class IdentifiedObject(Detection):
         super().__init__(detectionObject.x, detectionObject.y, detectionObject.width, detectionObject.height)
         self.id = id
         self.history = [Point(detectionObject.x, detectionObject.y)]
+        
+    def __hash__(self):
+        return hash(self.id)
 
-    def update_location(self, point: Point) -> None:
+    def update_location(self, point: Point | None) -> None:
+        if point is None:
+            self.history.append(None)
+            return
+        self.x = point.x
+        self.y = point.y
         self.history.append(point)

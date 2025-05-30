@@ -6,10 +6,7 @@ import cv2
 import numpy as np
 
 
-def visualize_tracking(
-    detections_per_frame: List,
-    tracked_per_frame: List,
-    window_name: str):
+def visualize_tracking(detections_per_frame: List, tracked_per_frame: List, window_name: str):
     """
     Save detections and tracked IDs for each frame as images in a directory.
     Images for each test are saved in artifacts/visualize_tracking/{window_name}/ by default.
@@ -24,7 +21,9 @@ def visualize_tracking(
     os.makedirs(save_dir, exist_ok=True)
     for frame_idx, (detections, tracked) in enumerate(zip(detections_per_frame, tracked_per_frame)):
         img = np.ones((height, width, 3), dtype=np.uint8) * 255  # White background
-        cv2.putText(img, str(frame_idx + 1), (width - 25, height - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
+        cv2.putText(
+            img, str(frame_idx + 1), (width - 25, height - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2
+        )
         # Draw detections (red)
         for det in detections:
             cv2.rectangle(img, (det.x, det.y), (det.x + det.width, det.y + det.height), (0, 0, 255), 1)
