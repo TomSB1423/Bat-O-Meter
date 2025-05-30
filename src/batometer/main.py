@@ -47,12 +47,12 @@ def main(video_path: str) -> None:
         logger.info(f"Opened frame: {frame_num}/{noFrames} - time: {frame_time}")
 
         # Find objects
-        detections: list[Detection] = objectFinder.update(frame)
+        detections = objectFinder.update(frame)
         for detection in detections:
             cv2.rectangle(
                 frame.frame,
-                (detection.x, detection.y),
-                (detection.x + detection.width, detection.y + detection.height),
+                (detection.point.x, detection.point.y),
+                (detection.point.x + detection.width, detection.point.y + detection.height),
                 (0, 0, 255),
                 3,
             )
@@ -62,34 +62,49 @@ def main(video_path: str) -> None:
         video.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
         _, fut_frame = video.read()
         max_movement_dist = 100
-        future_detections: list[Detection] = objectFinder.update(Frame(fut_frame, next_frame))
-        cleaned_detections: list[Detection] = []
+        future_detections= objectFinder.update(Frame(fut_frame, next_frame))
+        cleaned_detections = set()
         for detection in detections:
             for fut_detection in future_detections:
-                movement_dist = math.hypot(detection.x - fut_detection.x, detection.y - fut_detection.y)
+                movement_dist = math.hypot(detection.point.x - fut_detection.point.x, detection.point.y - fut_detection.point.y)
                 if movement_dist < max_movement_dist:
-                    cleaned_detections.append(detection)
+                    cleaned_detections.add(detection)
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
 
         # Track objects
-        tracked_detections: list[IdentifiedObject] = tracker.update(cleaned_detections, frame_num)
+        tracked_detections = tracker.update(cleaned_detections)
 
         # Display tracked detections
-        for detection in tracked_detections:
+        for obj in tracked_detections:
+            # Draw the track history as a line
+            color = ((obj.id * 70) % 256, (obj.id * 150) % 256, (obj.id * 230) % 256)
+            if hasattr(obj, "history") and len(obj.history) > 1:
+                last_valid_point = None
+                for i in range(1, len(obj.history)):
+                    pt1 = obj.history[i - 1]
+                    pt2 = obj.history[i]
+                    if pt1 is not None and pt2 is not None:
+                        cv2.line(frame.frame, (pt1.x, pt1.y), (pt2.x, pt2.y), color, 2)
+                        last_valid_point = pt2
+                    elif pt2 is not None and last_valid_point is not None:
+                        cv2.line(frame.frame, (last_valid_point.x, last_valid_point.y), (pt2.x, pt2.y), color, 2)
+                        last_valid_point = pt2
+                    elif pt2 is not None:
+                        last_valid_point = pt2
             cv2.putText(
                 frame.frame,
-                str(detection.id),
-                (detection.x, detection.y - 15),
+                str(obj.id),
+                (obj.point.x, obj.point.y - 15),
                 cv2.FONT_HERSHEY_PLAIN,
                 2,
-                (255, 0, 0),
+                color,
                 2,
             )
             cv2.rectangle(
                 frame.frame,
-                (detection.x, detection.y),
-                (detection.x + detection.width, detection.y + detection.height),
-                (0, 255, 0),
+                (obj.point.x, obj.point.y),
+                (obj.point.x + obj.width, obj.point.y + obj.height),
+                color,
                 3,
             )
         cv2.imshow("main", frame.frame)
