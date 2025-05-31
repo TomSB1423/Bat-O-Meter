@@ -16,7 +16,7 @@ from .utils import calculate_video_time_from_frame_num, load_video
 from .window import ImageTransformer
 
 FORMAT = "%(asctime)s %(levelname)-8s %(message)s"
-logging.basicConfig(level=logging.INFO, format=FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(BATOMETER)
 
 
@@ -58,21 +58,22 @@ def main(video_path: str) -> None:
             )
 
         # Clean bogus detections by looking in the future
-        next_frame = frame_num + 1
-        video.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
-        _, fut_frame = video.read()
-        max_movement_dist = 100
-        future_detections= objectFinder.update(Frame(fut_frame, next_frame))
-        cleaned_detections = set()
-        for detection in detections:
-            for fut_detection in future_detections:
-                movement_dist = math.hypot(detection.point.x - fut_detection.point.x, detection.point.y - fut_detection.point.y)
-                if movement_dist < max_movement_dist:
-                    cleaned_detections.add(detection)
-        video.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+        # This is a silly way of doing it as real objects might be there 
+        # next_frame = frame_num + 1
+        # video.set(cv2.CAP_PROP_POS_FRAMES, next_frame)
+        # _, fut_frame = video.read()
+        # max_movement_dist = 100
+        # future_detections= objectFinder.update(Frame(fut_frame, next_frame))
+        # cleaned_detections = set()
+        # for detection in detections:
+        #     for fut_detection in future_detections:
+        #         movement_dist = math.hypot(detection.point.x - fut_detection.point.x, detection.point.y - fut_detection.point.y)
+        #         if movement_dist < max_movement_dist:
+        #             cleaned_detections.add(detection)
+        # video.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
 
         # Track objects
-        tracked_detections = tracker.update(cleaned_detections)
+        tracked_detections = tracker.update(detections)
 
         # Display tracked detections
         for obj in tracked_detections:

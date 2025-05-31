@@ -1,4 +1,4 @@
-from batometer.detectionObject import Detection
+from batometer.detectionObject import Detection, Point
 from batometer.tracker import EuclideanDistTracker
 from tests.visualization import visualize_tracking
 
@@ -10,16 +10,16 @@ def test_tracker_tracks_moving_object(request):
     tracker = EuclideanDistTracker()
     # Simulate a moving object across 5 frames
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5)],
-        [Detection(x=15, y=12, width=5, height=5)],
-        [Detection(x=20, y=15, width=5, height=5)],
-        [Detection(x=25, y=18, width=5, height=5)],
-        [Detection(x=30, y=20, width=5, height=5)],
+        [Detection(Point(10, 10), 5, 5)],
+        [Detection(Point(15, 12), 5, 5)],
+        [Detection(Point(20, 15), 5, 5)],
+        [Detection(Point(25, 18), 5, 5)],
+        [Detection(Point(30, 20), 5, 5)],
     ]
     ids = []
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
         assert len(tracked) == 1
         ids.append(tracked[0].id)
@@ -35,14 +35,14 @@ def test_tracker_handles_multiple_objects(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5), Detection(x=100, y=100, width=5, height=5)],
-        [Detection(x=15, y=12, width=5, height=5), Detection(x=105, y=102, width=5, height=5)],
-        [Detection(x=20, y=15, width=5, height=5), Detection(x=110, y=105, width=5, height=5)],
+        [Detection(Point(10, 10), 5, 5), Detection(Point(100, 100), 5, 5)],
+        [Detection(Point(15, 12), 5, 5), Detection(Point(105, 102), 5, 5)],
+        [Detection(Point(20, 15), 5, 5), Detection(Point(110, 105), 5, 5)],
     ]
     ids_per_frame = []
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
         assert len(tracked) == 2
         ids_per_frame.append([obj.id for obj in tracked])
@@ -60,15 +60,15 @@ def test_tracker_new_object_gets_new_id(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5)],
-        [Detection(x=15, y=12, width=5, height=5)],
-        [Detection(x=20, y=15, width=5, height=5), Detection(x=100, y=100, width=5, height=5)],
+        [Detection(Point(10, 10), 5, 5)],
+        [Detection(Point(15, 12), 5, 5)],
+        [Detection(Point(20, 15), 5, 5), Detection(Point(100, 100), 5, 5)],
     ]
     all_ids = set()
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
-        tracked_per_frame.append(tracked)
+        tracked = tracker.update(set(detections))
+        tracked_per_frame.append(list(tracked))
         for obj in tracked:
             all_ids.add(obj.id)
     # Uncomment to visualize:
@@ -83,16 +83,16 @@ def test_tracker_crossing_objects(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5), Detection(x=100, y=100, width=5, height=5)],
-        [Detection(x=30, y=30, width=5, height=5), Detection(x=80, y=80, width=5, height=5)],
-        [Detection(x=50, y=50, width=5, height=5), Detection(x=60, y=60, width=5, height=5)],
-        [Detection(x=80, y=80, width=5, height=5), Detection(x=30, y=30, width=5, height=5)],
-        [Detection(x=100, y=100, width=5, height=5), Detection(x=10, y=10, width=5, height=5)],
+        [Detection(Point(10, 10), 5, 5), Detection(Point(100, 100), 5, 5)],
+        [Detection(Point(30, 30), 5, 5), Detection(Point(80, 80), 5, 5)],
+        [Detection(Point(50, 50), 5, 5), Detection(Point(60, 60), 5, 5)],
+        [Detection(Point(80, 80), 5, 5), Detection(Point(30, 30), 5, 5)],
+        [Detection(Point(100, 100), 5, 5), Detection(Point(10, 10), 5, 5)],
     ]
     ids_per_frame = []
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
         assert len(tracked) == 2
         ids_per_frame.append([obj.id for obj in tracked])
@@ -110,15 +110,15 @@ def test_tracker_object_leaves_and_reenters(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5)],
+        [Detection(Point(10, 10), 5, 5)],
         [],  # Object leaves
-        [Detection(x=12, y=12, width=5, height=5)],  # Re-enters (should get new ID)
+        [Detection(Point(12, 12), 5, 5)],  # Re-enters (should get new ID)
     ]
     all_ids = set()
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
-        tracked_per_frame.append(tracked)
+        tracked = tracker.update(set(detections))
+        tracked_per_frame.append(list(tracked))
         for obj in tracked:
             all_ids.add(obj.id)
     if request.config.getoption("--debug-frames"):
@@ -133,16 +133,16 @@ def test_tracker_variable_speed(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5)],
-        [Detection(x=20, y=10, width=5, height=5)],
-        [Detection(x=40, y=10, width=5, height=5)],  # Large jump
-        [Detection(x=45, y=10, width=5, height=5)],
-        [Detection(x=47, y=10, width=5, height=5)],
+        [Detection(Point(10, 10), 5, 5)],
+        [Detection(Point(20, 10), 5, 5)],
+        [Detection(Point(40, 10), 5, 5)],  # Large jump
+        [Detection(Point(45, 10), 5, 5)],
+        [Detection(Point(47, 10), 5, 5)],
     ]
     ids = []
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
         if tracked:
             ids.append(tracked[0].id)
@@ -158,13 +158,13 @@ def test_tracker_empty_frame(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5)],
+        [Detection(Point(10, 10), 5, 5)],
         [],  # No detections
-        [Detection(x=12, y=12, width=5, height=5)],
+        [Detection(Point(12, 12), 5, 5)],
     ]
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
     if request.config.getoption("--debug-frames"):
         visualize_tracking(detections_per_frame, tracked_per_frame, window_name=request.node.name)
@@ -179,23 +179,14 @@ def test_tracker_overlapping_objects(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [
-            Detection(x=10, y=10, width=10, height=10),
-            Detection(x=100, y=100, width=10, height=10),
-        ],
-        [
-            Detection(x=50, y=50, width=20, height=20),
-            Detection(x=55, y=55, width=20, height=20),
-        ],  # Overlap
-        [
-            Detection(x=100, y=100, width=10, height=10),
-            Detection(x=10, y=10, width=10, height=10),
-        ],
+        [Detection(Point(10, 10), 10, 10), Detection(Point(100, 100), 10, 10)],
+        [Detection(Point(50, 50), 20, 20), Detection(Point(55, 55), 20, 20)],
+        [Detection(Point(100, 100), 10, 10), Detection(Point(10, 10), 10, 10)],
     ]
     ids_per_frame = []
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
         ids_per_frame.append([obj.id for obj in tracked])
     if request.config.getoption("--debug-frames"):
@@ -212,13 +203,13 @@ def test_tracker_many_objects(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10 * i, y=10 * i, width=5, height=5) for i in range(10)],
-        [Detection(x=10 * i + 2, y=10 * i + 2, width=5, height=5) for i in range(10)],
-        [Detection(x=10 * i + 4, y=10 * i + 4, width=5, height=5) for i in range(10)],
+        [Detection(Point(10 * i, 10 * i), 5, 5) for i in range(10)],
+        [Detection(Point(10 * i + 2, 10 * i + 2), 5, 5) for i in range(10)],
+        [Detection(Point(10 * i + 4, 10 * i + 4), 5, 5) for i in range(10)],
     ]
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
         assert len(tracked) == 10
     if request.config.getoption("--debug-frames"):
@@ -235,14 +226,14 @@ def test_tracker_bounding_box_change(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=10, y=10, width=5, height=5)],
-        [Detection(x=12, y=10, width=10, height=8)],  # Size/shape change
-        [Detection(x=15, y=12, width=7, height=6)],
+        [Detection(Point(10, 10), 5, 5)],
+        [Detection(Point(12, 10), 10, 8)],  # Size/shape change
+        [Detection(Point(15, 12), 7, 6)],
     ]
     ids = []
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
         if tracked:
             ids.append(tracked[0].id)
@@ -257,13 +248,13 @@ def test_tracker_out_of_bounds(request):
     """
     tracker = EuclideanDistTracker()
     detections_per_frame = [
-        [Detection(x=-10, y=-10, width=5, height=5)],  # Negative coords
-        [Detection(x=410, y=410, width=5, height=5)],  # Outside window
-        [Detection(x=10, y=10, width=5, height=5)],
+        [Detection(Point(-10, -10), 5, 5)],  # Negative coords
+        [Detection(Point(410, 410), 5, 5)],  # Outside window
+        [Detection(Point(10, 10), 5, 5)],
     ]
     tracked_per_frame = []
     for detections in detections_per_frame:
-        tracked = tracker.update(detections)
+        tracked = list(tracker.update(set(detections)))
         tracked_per_frame.append(tracked)
     if request.config.getoption("--debug-frames"):
         visualize_tracking(detections_per_frame, tracked_per_frame, window_name=request.node.name)
