@@ -44,7 +44,7 @@ class EuclideanDistTracker:
         # then if detections still not found
         # find objects that are max 10 frames behind, using their predicted location
         # if still not found then assume a new object
-        successfully_matched  set()
+        successfully_matched = set()
         for det in detected_objects:
             matched = False
             for track in self.current_objects:

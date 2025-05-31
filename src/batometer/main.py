@@ -8,7 +8,6 @@ import cv2
 from dotenv import load_dotenv
 
 from .constants import BATOMETER
-from .detectionObject import Detection, IdentifiedObject
 from .frame import Frame
 from .objectfinder import ObjectFinder
 from .tracker import EuclideanDistTracker
@@ -36,6 +35,7 @@ def main(video_path: str) -> None:
     tracker = EuclideanDistTracker()
     img_transformer = ImageTransformer()
 
+    cv2.namedWindow('main', cv2.WINDOW_NORMAL)
     while video.isOpened():
         ret, vid_frame = video.read()
         frame_num = int(video.get(cv2.CAP_PROP_POS_FRAMES))
@@ -109,6 +109,8 @@ def main(video_path: str) -> None:
                 3,
             )
         cv2.imshow("main", frame.frame)
+        cv2.resizeWindow('main', int(width * 0.8), int(height * 0.8))
+        
         key = cv2.waitKey(30)
         if key == 27:
             break
