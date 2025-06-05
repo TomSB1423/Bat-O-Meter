@@ -23,7 +23,7 @@ class ObjectFinder:
         """
         self.backgroundSub = cv2.createBackgroundSubtractorMOG2(
             history=500,  # no. frames to keep
-            varThreshold=100,  # sensitivity of
+            varThreshold=80,  # sensitivity of
             detectShadows=False,
         )
 

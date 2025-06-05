@@ -118,19 +118,14 @@ class IdentifiedObject(Detection):
 
     def is_self(self, det: Detection) -> bool:
         """
-        Determine if a detection matches this object based on distance to predicted or last known position.
+        Determine if a detection is inside the predicted circle for this object.
 
         Args:
             det (Detection): The detection to compare.
 
         Returns:
-            bool: True if the detection is considered the same object, False otherwise.
+            bool: True if the detection's point is inside the predicted circle, False otherwise.
         """
-        if self.speed == 0:
-            dist = math.hypot(det.point.x - self.point.x, det.point.y - self.point.y)
-            if dist < self.prediction_range:
-                return True
-        dist = math.hypot(det.point.x - self.predicted_position.x, det.point.y - self.predicted_position.y)
-        if dist < self.prediction_range * (self.missed_tracks + 1):
-            return True
-        return False
+        dx = det.point.x - self.predicted_position.x
+        dy = det.point.y - self.predicted_position.y
+        return dx * dx + dy * dy <= self.prediction_range * self.prediction_range

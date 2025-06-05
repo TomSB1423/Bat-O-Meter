@@ -4,6 +4,7 @@ import os
 import sys
 
 import cv2
+import numpy as np
 from dotenv import load_dotenv
 
 from .constants import BATOMETER, VIDEO_FPS
@@ -14,7 +15,7 @@ from .utils import calculate_video_time_from_frame_num, load_video
 from .window import ImageTransformer, resize_window_to_screen
 
 FORMAT = "%(asctime)s %(levelname)-8s %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(BATOMETER)
 
 
@@ -40,19 +41,22 @@ def main(video_path: str) -> None:
 
     # --- Play/Pause and Frame Cache Setup ---
     play = True
+    show_heatmap = False  # Toggle for heatmap overlay
     frame_cache: list[
         tuple[
             "cv2.typing.MatLike",  # vid_frame
             int,  # frame_num
             str,  # frame_time
             Frame,  # Frame object
-            set,  # detections (could be more specific if you have a Detection type)
-            set,  # tracked_detections (could be more specific if you have a TrackedDetection type)
+            set,  # detections
+            set,  # tracked_detections
             "cv2.typing.MatLike",  # objectsFrame
+            "cv2.typing.MatLike",  # heatmap for this frame
         ]
     ] = []
     current_frame_idx = -1
 
+    # --- Main loop ---
     while True:
         if play:
             ret, vid_frame = video.read()
@@ -75,7 +79,17 @@ def main(video_path: str) -> None:
                     3,
                 )
             # Track objects
-            tracked_detections = tracker.update(detections)
+            tracked_detections, predicted_objs = tracker.update(detections)
+            # Draw predictions
+            for obj in predicted_objs:
+                color = ((obj.id * 70) % 256, (obj.id * 150) % 256, (obj.id * 230) % 256)
+                cv2.circle(
+                    frame.frame,
+                    (obj.predicted_position.x, obj.predicted_position.y),
+                    radius=obj.prediction_range,
+                    color=color,
+                    thickness=3,
+                )
             # Draw tracked detections
             for obj in tracked_detections:
                 color = ((obj.id * 70) % 256, (obj.id * 150) % 256, (obj.id * 230) % 256)
@@ -87,7 +101,7 @@ def main(video_path: str) -> None:
                     color=color,
                     thickness=-1,
                 )
-                alpha = 0.3  # Transparency factor (0.0 - fully transparent, 1.0 - opaque)
+                alpha = 0.5  # Transparency factor (0.0 - fully transparent, 1.0 - opaque)
                 cv2.addWeighted(overlay, alpha, frame.frame, 1 - alpha, 0, frame.frame)
                 if hasattr(obj, "history") and len(obj.history) > 1:
                     last_valid_point = None
@@ -124,6 +138,30 @@ def main(video_path: str) -> None:
                     color,
                     3,
                 )
+            # --- Generate heatmap for this frame ---
+            long_tracks = [obj for obj in tracker.current_potential_objects.union(tracker.all_objects) if hasattr(obj, 'history') and len([pt for pt in obj.history if pt is not None]) > 10]
+            idx = len(frame_cache)
+            heat = np.zeros((height, width), dtype=np.float32)
+            arrow_overlay = np.zeros((height, width, 3), dtype=np.uint8)
+            for obj in long_tracks:
+                if idx < len(obj.history):
+                    pt = obj.history[idx]
+                    if pt is not None:
+                        cv2.circle(heat, (pt.x, pt.y), 8, (1,), -1)
+                for i in range(1, min(idx+1, len(obj.history))):
+                    pt1 = obj.history[i-1]
+                    pt2 = obj.history[i]
+                    if pt1 is not None and pt2 is not None:
+                        cv2.arrowedLine(
+                            arrow_overlay,
+                            (pt1.x, pt1.y),
+                            (pt2.x, pt2.y),
+                            (0, 255, 255), 2, tipLength=0.4
+                        )
+            norm_heat = np.zeros_like(heat, dtype=np.uint8)
+            cv2.normalize(heat, norm_heat, 0, 255, cv2.NORM_MINMAX)
+            color_heat = cv2.applyColorMap(norm_heat, cv2.COLORMAP_JET)
+            color_heat = cv2.addWeighted(color_heat, 1.0, arrow_overlay, 1.0, 0)
             # Cache the frame and results
             frame_cache.append(
                 (
@@ -134,10 +172,10 @@ def main(video_path: str) -> None:
                     detections,
                     tracked_detections,
                     objectsFrame,
+                    color_heat,  # store heatmap for this frame
                 )
             )
             current_frame_idx += 1
-            # Use the current frame for display
             display_frame_width = frame.frame
         else:
             # Paused: show cached frame
@@ -150,17 +188,17 @@ def main(video_path: str) -> None:
                     detections,
                     tracked_detections,
                     objectsFrame,
+                    color_heat,
                 ) = frame_cache[current_frame_idx]
                 display_frame_width = cached_frame.frame
             else:
-                # Nothing to show
                 break
+
         # --- Draw play/pause button indicator ---
         status_text = "PAUSED" if not play else "PLAYING"
         overlay_text = (
-            f"{status_text} | Space: Play/Pause | <-/->: Step | Esc: Quit | Frame: {current_frame_idx}"
+            f"{status_text} | Space: Play/Pause | <-/->: Step | h: Toggle Heatmap | Esc: Quit | Frame: {current_frame_idx}"
         )
-        # Draw overlay text at the top of the frame
         overlay_frame = display_frame_width.copy()
         cv2.rectangle(overlay_frame, (0, 0), (overlay_frame.shape[1], 40), (0, 0, 0), -1)
         cv2.putText(
@@ -173,16 +211,18 @@ def main(video_path: str) -> None:
             2,
             cv2.LINE_AA,
         )
-        # Concatenate overlay_frame and objectsFrame side by side for display
+        # --- Overlay heatmap if toggled ---
+        if show_heatmap and 0 <= current_frame_idx < len(frame_cache):
+            heat_overlay = frame_cache[current_frame_idx][7]
+            overlay_frame = cv2.addWeighted(overlay_frame, 0.6, heat_overlay, 0.4, 0)
         display_frame = img_transformer.images_side_by_side(overlay_frame, objectsFrame, "Frame", "Objects")
         cv2.imshow("main", display_frame)
 
-        # Get width and height from combined_frame for resizing
         display_frame_height, display_frame_width = display_frame.shape[:2]
         resize_window_to_screen("main", display_frame_width, display_frame_height)
 
         key = cv2.waitKey(0 if not play else 30)
-        # Handle arrow keys for your platform and Windows/Linux
+        print(f"DEBUG: Key pressed: {key}")  # Add this line to debug key codes
         LEFT_KEYS = [2, 81]
         RIGHT_KEYS = [3, 83]
         if key == 27:  # ESC
@@ -196,14 +236,15 @@ def main(video_path: str) -> None:
             if not play and current_frame_idx < len(frame_cache) - 1:
                 current_frame_idx += 1
             elif not play and current_frame_idx == len(frame_cache) - 1:
-                # Step forward: play one frame
                 play = True
-        # else: ignore other keys
+        elif key == ord('h') or key == ord('H') or key == 104:
+            show_heatmap = not show_heatmap
         if play and current_frame_idx < len(frame_cache) - 1:
-            # If user resumes play from paused and is not at the end, jump to end
             current_frame_idx = len(frame_cache) - 1
     video.release()
     cv2.destroyAllWindows()
+    
+    
 
 
 if __name__ == "__main__":
