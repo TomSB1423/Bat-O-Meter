@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 import cv2
 from cv2.typing import MatLike
@@ -45,7 +44,7 @@ class ObjectFinder:
             self.backgroundSub.apply(frame)
         logger.info("Successfully primed background subtractor")
 
-    def update(self, frame: Frame) -> set[Detection]:
+    def update(self, frame: Frame) -> tuple[set[Detection], MatLike]:
         """
         Updates the object finder with a new frame and returns detected objects.
 
@@ -60,7 +59,7 @@ class ObjectFinder:
         fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, self.kernel)
         # Find contours on the foreground
         detections = self._get_contours(fgmask)
-        return detections
+        return detections, fgmask
 
     def _get_contours(self, frame: MatLike) -> set[Detection]:
         """
@@ -78,10 +77,6 @@ class ObjectFinder:
             # Get the centroid of the object
             M = cv2.moments(contour)
             if M["m00"] != 0:  # Area is non-zero
-                cx = int(M["m10"] / M["m00"])
-                cy = int(M["m01"] / M["m00"])
-                logger.debug(f"Found object x: {cx} y: {cy}")
                 x, y, w, h = cv2.boundingRect(contour)
                 detections.add(Detection(Point(x, y), w, h))
-                # cv2.drawContours(contour_frame, contour, -1, (0, 255, 0), 3)
         return detections

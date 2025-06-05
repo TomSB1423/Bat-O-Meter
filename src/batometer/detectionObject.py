@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from typing import List
 
@@ -14,7 +15,7 @@ class Point:
 
     x: int
     y: int
-    
+
     def __hash__(self):
         return hash((self.x, self.y))
 
@@ -29,11 +30,11 @@ class Detection:
         width (int): Width of the bounding box.
         height (int): Height of the bounding box.
     """
-    
+
     point: Point
     width: int
     height: int
-    
+
     def __hash__(self):
         return hash((self.point, self.width, self.height))
 
@@ -52,6 +53,7 @@ class IdentifiedObject(Detection):
     history: List[Point | None]
     speed: tuple[float, float]  # (vx, vy)
     predicted_position: Point
+    prediction_range: int = 30
     missed_tracks: int = 0
 
     def __init__(self, id: int, detectionObject: Detection) -> None:
@@ -67,15 +69,15 @@ class IdentifiedObject(Detection):
         self.history = [detectionObject.point]
         self.predicted_position = detectionObject.point
         self.speed = (0.0, 0.0)
-        
+
     def __hash__(self):
         return hash(self.id)
 
     def update_location(self, point: Point | None) -> None:
         if point is None:
             self.missed_tracks += 1
-            predicted_x = self.point.x + self.speed[0] * self.missed_tracks
-            predicted_y = self.point.y + self.speed[1] * self.missed_tracks
+            predicted_x = self.point.x + (self.speed[0] * self.missed_tracks)
+            predicted_y = self.point.y + (self.speed[1] * self.missed_tracks)
             self.predicted_position = Point(int(predicted_x), int(predicted_y))
             self.history.append(None)
             # Do not update speed if no new point
@@ -94,4 +96,17 @@ class IdentifiedObject(Detection):
             dy = (point.y - last_point.y) / passed_frames
             self.speed = (dx, dy)
         self.point = point
+        predicted_x = self.point.x + self.speed[0]
+        predicted_y = self.point.y + self.speed[1]
+        self.predicted_position = Point(int(predicted_x), int(predicted_y))
         self.history.append(point)
+
+    def is_self(self, det: Detection) -> bool:
+        if self.speed == 0:
+            dist = math.hypot(det.point.x - self.point.x, det.point.y - self.point.y)
+            if dist < self.prediction_range:
+                return True
+        dist = math.hypot(det.point.x - self.predicted_position.x, det.point.y - self.predicted_position.y)
+        if dist < self.prediction_range * (self.missed_tracks + 1):
+            return True
+        return False

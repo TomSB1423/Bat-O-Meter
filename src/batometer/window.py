@@ -191,3 +191,19 @@ class ImageTransformer:
         alpha = 0.5
         blended = cv2.addWeighted(overlay, alpha, background, 1 - alpha, 0)
         return blended
+
+
+def resize_window_to_screen(window_name: str, width: int, height: int):
+    """
+    Resize the OpenCV window based on screen size and video aspect ratio.
+    """
+    # Use tkinter to get screen size (cross-platform, no subprocess)
+    root = tk.Tk()
+    root.withdraw()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.destroy()
+    scale = min(screen_width / width, screen_height / height, 0.8)
+    window_w = int(width * scale)
+    window_h = int(height * scale)
+    cv2.resizeWindow(window_name, window_w, window_h)
