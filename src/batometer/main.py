@@ -42,6 +42,9 @@ def main(video_path: str) -> None:
     # --- Play/Pause and Frame Cache Setup ---
     play = True
     show_heatmap = False  # Toggle for heatmap overlay
+    show_average_heatmap = False
+    average_heatmap = None
+    avg_heat = np.zeros((height, width), dtype=np.float32)  # Persistent average heatmap
     frame_cache: list[
         tuple[
             "cv2.typing.MatLike",  # vid_frame
@@ -55,6 +58,13 @@ def main(video_path: str) -> None:
         ]
     ] = []
     current_frame_idx = -1
+
+    # --- Directional grid for average heatmap ---
+    grid_size = 32  # You can adjust this for finer/coarser arrows
+    grid_h = height // grid_size
+    grid_w = width // grid_size
+    direction_sum_grid = np.zeros((grid_h, grid_w, 2), dtype=np.float32)  # (sum_dx, sum_dy) per cell
+    direction_count_grid = np.zeros((grid_h, grid_w), dtype=np.int32)     # count per cell
 
     # --- Main loop ---
     while True:
@@ -143,11 +153,28 @@ def main(video_path: str) -> None:
             idx = len(frame_cache)
             heat = np.zeros((height, width), dtype=np.float32)
             arrow_overlay = np.zeros((height, width, 3), dtype=np.uint8)
+            # --- Update direction grid for average heatmap ---
+            for obj in long_tracks:
+                for i in range(1, min(idx+1, len(obj.history))):
+                    pt1 = obj.history[i-1]
+                    pt2 = obj.history[i]
+                    if pt1 is not None and pt2 is not None:
+                        cx = (pt1.x + pt2.x) // 2
+                        cy = (pt1.y + pt2.y) // 2
+                        gx = min(cx // grid_size, grid_w - 1)
+                        gy = min(cy // grid_size, grid_h - 1)
+                        dx = pt2.x - pt1.x
+                        dy = pt2.y - pt1.y
+                        direction_sum_grid[gy, gx, 0] += dx
+                        direction_sum_grid[gy, gx, 1] += dy
+                        direction_count_grid[gy, gx] += 1
             for obj in long_tracks:
                 if idx < len(obj.history):
                     pt = obj.history[idx]
                     if pt is not None:
                         cv2.circle(heat, (pt.x, pt.y), 8, (1,), -1)
+                        # --- Update average heatmap incrementally ---
+                        cv2.circle(avg_heat, (pt.x, pt.y), 8, (1,), -1)
                 for i in range(1, min(idx+1, len(obj.history))):
                     pt1 = obj.history[i-1]
                     pt2 = obj.history[i]
@@ -197,7 +224,7 @@ def main(video_path: str) -> None:
         # --- Draw play/pause button indicator ---
         status_text = "PAUSED" if not play else "PLAYING"
         overlay_text = (
-            f"{status_text} | Space: Play/Pause | <-/->: Step | h: Toggle Heatmap | Esc: Quit | Frame: {current_frame_idx}"
+            f"{status_text} | Space: Play/Pause | <-/->: Step | h: Toggle Heatmap | a: Toggle Avg Heatmap | Esc: Quit | Frame: {current_frame_idx}"
         )
         overlay_frame = display_frame_width.copy()
         cv2.rectangle(overlay_frame, (0, 0), (overlay_frame.shape[1], 40), (0, 0, 0), -1)
@@ -215,6 +242,37 @@ def main(video_path: str) -> None:
         if show_heatmap and 0 <= current_frame_idx < len(frame_cache):
             heat_overlay = frame_cache[current_frame_idx][7]
             overlay_frame = cv2.addWeighted(overlay_frame, 0.6, heat_overlay, 0.4, 0)
+        # --- Overlay average heatmap if toggled ---
+        if show_average_heatmap:
+            arrow_overlay = overlay_frame.copy()
+            fixed_length = 14  # Fixed arrow length for all cells
+            for gy in range(grid_h):
+                for gx in range(grid_w):
+                    count = direction_count_grid[gy, gx]
+                    if count > 0:
+                        avg_dx = direction_sum_grid[gy, gx, 0] / count
+                        avg_dy = direction_sum_grid[gy, gx, 1] / count
+                        mag = np.hypot(avg_dx, avg_dy)
+                        center_x = int((gx + 0.5) * grid_size)
+                        center_y = int((gy + 0.5) * grid_size)
+                        if mag > 1e-2:
+                            dir_x = avg_dx / mag
+                            dir_y = avg_dy / mag
+                            tip_x = int(center_x + dir_x * fixed_length)
+                            tip_y = int(center_y + dir_y * fixed_length)
+                            cv2.arrowedLine(
+                                arrow_overlay,
+                                (center_x, center_y),
+                                (tip_x, tip_y),
+                                (0, 255, 255), 2, tipLength=0.3
+                            )
+                        else:
+                            cv2.circle(arrow_overlay, (center_x, center_y), 2, (0, 255, 255), -1)
+                    else:
+                        center_x = int((gx + 0.5) * grid_size)
+                        center_y = int((gy + 0.5) * grid_size)
+                        cv2.circle(arrow_overlay, (center_x, center_y), 2, (0, 255, 255), -1)
+            overlay_frame = cv2.addWeighted(overlay_frame, 0.7, arrow_overlay, 0.7, 0)
         display_frame = img_transformer.images_side_by_side(overlay_frame, objectsFrame, "Frame", "Objects")
         cv2.imshow("main", display_frame)
 
@@ -239,6 +297,8 @@ def main(video_path: str) -> None:
                 play = True
         elif key == ord('h') or key == ord('H') or key == 104:
             show_heatmap = not show_heatmap
+        elif key == ord('a') or key == ord('A') or key == 97:
+            show_average_heatmap = not show_average_heatmap
         if play and current_frame_idx < len(frame_cache) - 1:
             current_frame_idx = len(frame_cache) - 1
     video.release()
