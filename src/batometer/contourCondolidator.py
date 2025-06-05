@@ -11,19 +11,16 @@ class ContourConsolidator:
     Consolidates contours across frames for improved object tracking.
     """
 
-    previousContours: dict = {}
+    previousContours: dict
 
     def __init__(self) -> None:
         """
         Initializes the ContourConsolidator.
         """
-        pass
+        self.previousContours = {}
 
-    def update(self) -> Any:
+    def update(self) -> None:
         """
         Updates the contour consolidation logic. (Currently a stub.)
-
-        Returns:
-            Any: Placeholder return value.
         """
         return

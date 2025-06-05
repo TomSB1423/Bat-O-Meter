@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 
 @dataclass
@@ -16,7 +16,8 @@ class Point:
     x: int
     y: int
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """Hash based on x and y coordinates."""
         return hash((self.x, self.y))
 
 
@@ -35,7 +36,8 @@ class Detection:
     width: int
     height: int
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """Hash based on point, width, and height."""
         return hash((self.point, self.width, self.height))
 
 
@@ -46,11 +48,15 @@ class IdentifiedObject(Detection):
 
     Attributes:
         id (int): Unique identifier for the detected object.
-        (Other attributes inherited from DetectionObject)
+        history (List[Optional[Point]]): List of previous positions (None if missed).
+        speed (tuple[float, float]): (vx, vy) speed vector.
+        predicted_position (Point): Predicted next position.
+        prediction_range (int): Range for prediction.
+        missed_tracks (int): Number of missed frames.
     """
 
     id: int
-    history: List[Point | None]
+    history: List[Optional[Point]]
     speed: tuple[float, float]  # (vx, vy)
     predicted_position: Point
     prediction_range: int = 30
@@ -58,11 +64,11 @@ class IdentifiedObject(Detection):
 
     def __init__(self, id: int, detectionObject: Detection) -> None:
         """
-        Initialize an IdentifiedObject from a DetectionObject and an id.
+        Initialize an IdentifiedObject from a Detection and an id.
 
         Args:
             id (int): Unique identifier for the object.
-            detectionObject (DetectionObject): The detected object to copy bounding box from.
+            detectionObject (Detection): The detected object to copy bounding box from.
         """
         super().__init__(detectionObject.point, detectionObject.width, detectionObject.height)
         self.id = id
@@ -70,10 +76,19 @@ class IdentifiedObject(Detection):
         self.predicted_position = detectionObject.point
         self.speed = (0.0, 0.0)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """Hash based on the unique id."""
         return hash(self.id)
 
-    def update_location(self, point: Point | None) -> None:
+    def update_location(self, point: Optional[Point]) -> None:
+        """
+        Update the object's location and prediction based on a new point.
+        If point is None, increment missed_tracks and update prediction.
+        If point is provided, update speed, prediction, and reset missed_tracks.
+
+        Args:
+            point (Optional[Point]): The new detected point or None if missed.
+        """
         if point is None:
             self.missed_tracks += 1
             predicted_x = self.point.x + (self.speed[0] * self.missed_tracks)
@@ -84,7 +99,7 @@ class IdentifiedObject(Detection):
             return
         self.missed_tracks = 0
         # Find last non-None point for speed calculation
-        last_point = None
+        last_point: Optional[Point] = None
         passed_frames = 0
         for prev in reversed(self.history):
             passed_frames += 1
@@ -102,6 +117,15 @@ class IdentifiedObject(Detection):
         self.history.append(point)
 
     def is_self(self, det: Detection) -> bool:
+        """
+        Determine if a detection matches this object based on distance to predicted or last known position.
+
+        Args:
+            det (Detection): The detection to compare.
+
+        Returns:
+            bool: True if the detection is considered the same object, False otherwise.
+        """
         if self.speed == 0:
             dist = math.hypot(det.point.x - self.point.x, det.point.y - self.point.y)
             if dist < self.prediction_range:

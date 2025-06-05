@@ -12,27 +12,31 @@ class EuclideanDistTracker:
     Assigns unique IDs to detected objects and maintains their identities across frames.
     """
 
+    all_objects: set['IdentifiedObject']
+    current_potential_objects: set['IdentifiedObject']
+    id_count: int
+
     def __init__(self) -> None:
         """
-        Initializes the tracker with an empty dictionary for center points and an ID counter.
+        Initializes the EuclideanDistTracker.
+        Sets up storage for all tracked objects, currently tracked objects, and the ID counter.
         """
         # Store the center positions of the objects
         self.all_objects: set[IdentifiedObject] = set()
         self.current_potential_objects: set[IdentifiedObject] = set()
         # Keep the count of the IDs
         # each time a new object id detected, the count will increase by one
-        self.id_count: int = 1
+        self.id_count: int = 0
 
-    def update(self, detected_objects: set[Detection]) -> set[IdentifiedObject]:
+    def update(self, detected_objects: set['Detection']) -> set['IdentifiedObject']:
         """
         Updates the tracker with new detections, assigns IDs, and returns identified objects.
 
         Args:
-            detected_objects (List[Detection]): List of detected objects in the current frame.
-            frame_num (int): The current frame number (for tracking missed frames).
+            detected_objects (set[Detection]): Set of detected objects in the current frame.
 
         Returns:
-            List[IdentifiedObject]: List of objects with assigned unique IDs.
+            set[IdentifiedObject]: Set of objects with assigned unique IDs for the current frame.
         """
         MAX_MISSED_FRAMES = 10
         self.current_potential_objects = set(

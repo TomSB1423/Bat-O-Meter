@@ -13,11 +13,11 @@ class ImageTransformer:
     Provides image transformation and display utilities for Bat-O-Meter visualizations.
     """
 
-    TEXT_OFFSET = (1200, 50)
-    TEXT_COLOUR = (0, 108, 255)
-    TEXT_FONT = 0.8
-    TEXT_FONT_FACE = cv2.FONT_HERSHEY_COMPLEX
-    TEXT_THICKNESS = 2
+    TEXT_OFFSET: tuple[int, int] = (1200, 50)
+    TEXT_COLOUR: tuple[int, int, int] = (0, 108, 255)
+    TEXT_FONT: float = 0.8
+    TEXT_FONT_FACE: int = cv2.FONT_HERSHEY_COMPLEX
+    TEXT_THICKNESS: int = 2
 
     def __init__(self) -> None:
         """
@@ -25,7 +25,7 @@ class ImageTransformer:
         """
         self.window_width, self.window_height = self._compute_dimensions()
 
-    def show_frame(self, window_name: str, img: MatLike) -> None:
+    def show_frame(self, window_name: str, img: 'MatLike') -> None:
         """
         Displays a frame in a resizable OpenCV window.
 
@@ -42,7 +42,7 @@ class ImageTransformer:
             logger.info("Quit the program as escape was pressed")
             quit()
 
-    def overlay_two_images(self, background: MatLike, overlay: MatLike) -> MatLike:
+    def overlay_two_images(self, background: 'MatLike', overlay: 'MatLike') -> 'MatLike':
         """
         Overlays one image on top of another, matching dimensions as needed.
 
@@ -57,9 +57,9 @@ class ImageTransformer:
         background, overlay = self._match_dimensions_to_img1(background, overlay)
         return self._overlay_transparent(background, overlay)
 
-    def images_side_by_side(self, img1: MatLike, img2: MatLike, img1_text: str, img2_text: str) -> MatLike:
+    def images_side_by_side(self, img1: 'MatLike', img2: 'MatLike', img1_text: str, img2_text: str) -> 'MatLike':
         """
-        Concatenates two images side by side and overlays text labels.
+        Places two images side by side with optional text labels.
 
         Args:
             img1 (MatLike): First image.
@@ -68,7 +68,7 @@ class ImageTransformer:
             img2_text (str): Label for the second image.
 
         Returns:
-            MatLike: Side-by-side image.
+            MatLike: Combined image with both images side by side.
         """
         img1, img2 = self._match_dimensions_to_img1(img1, img2)
         cv2.putText(

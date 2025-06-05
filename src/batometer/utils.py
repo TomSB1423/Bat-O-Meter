@@ -16,7 +16,7 @@ if os.path.exists(TEMP_DIR):
     shutil.rmtree(TEMP_DIR)
 
 
-def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
+def load_video(path_str: str) -> tuple['cv2.VideoCapture', int, int, int, int]:
     """
     Loads a video from the given path and returns the video capture object and its properties.
 
@@ -24,7 +24,7 @@ def load_video(path_str: str) -> Tuple[cv2.VideoCapture, int, int, int, int]:
         path_str (str): Path to the video file.
 
     Returns:
-        Tuple[cv2.VideoCapture, int, int, int, int]:
+        tuple[cv2.VideoCapture, int, int, int, int]:
             - video (cv2.VideoCapture): The video capture object.
             - width (int): Frame width.
             - height (int): Frame height.
@@ -59,7 +59,7 @@ def calculate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
         fps (int): Frames per second.
 
     Returns:
-        str: Time in HH:MM:SS:MS format.
+        str: Time in HH:MM:SS format.
     """
     hours = int(frame_num / (fps * 3600))
     minutes = int(frame_num / (fps * 60) % 60)

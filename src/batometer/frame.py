@@ -13,5 +13,5 @@ class Frame:
         num (int): The frame number in the video sequence.
     """
 
-    frame: MatLike
+    frame: 'MatLike'
     num: int
