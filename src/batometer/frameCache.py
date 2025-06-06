@@ -4,7 +4,6 @@ from typing import Any
 import cv2
 
 from .detectionObject import Detection, IdentifiedObject
-from .frame import Frame
 
 
 @dataclass

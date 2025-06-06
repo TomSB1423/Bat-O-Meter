@@ -21,7 +21,6 @@ from .constants import (
     TRACK_KEYS,
     VIDEO_FPS,
 )
-from .frame import Frame
 from .frameCache import FrameCacheEntry
 from .objectfinder import ObjectFinder
 from .tracker import EuclideanDistTracker

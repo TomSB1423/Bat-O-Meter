@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 from cv2.typing import MatLike
 
-from .frame import Frame
 
 logger = logging.getLogger("Bat-O-Meter.window")
 

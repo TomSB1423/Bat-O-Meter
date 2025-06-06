@@ -5,7 +5,6 @@ from cv2.typing import MatLike
 
 from .constants import BATOMETER
 from .detectionObject import Detection, Point
-from .frame import Frame
 
 logger = logging.getLogger(f"{BATOMETER}.ObjectFinder")
 
@@ -44,7 +43,7 @@ class ObjectFinder:
             self.backgroundSub.apply(frame)
         logger.info("Successfully primed background subtractor")
 
-    def update(self, frame: "Frame") -> tuple[set["Detection"], "MatLike"]:
+    def update(self, frame: MatLike) -> tuple[set["Detection"], "MatLike"]:
         """
         Updates the object finder with a new frame and returns detected objects and the mask.
 
@@ -55,7 +54,7 @@ class ObjectFinder:
             tuple[set[Detection], MatLike]: Set of detected objects and the foreground mask.
         """
         # Create the foreground mask
-        fgmask = self.backgroundSub.apply(frame.frame)
+        fgmask = self.backgroundSub.apply(frame)
         fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, self.kernel)
         # Find contours on the foreground
         detections = self._get_contours(fgmask)
