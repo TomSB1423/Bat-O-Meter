@@ -16,7 +16,7 @@ if os.path.exists(TEMP_DIR):
     shutil.rmtree(TEMP_DIR)
 
 
-def load_video(path_str: str) -> tuple['cv2.VideoCapture', int, int, int, int]:
+def load_video(path_str: str) -> tuple["cv2.VideoCapture", int, int, int, int]:
     """
     Loads a video from the given path and returns the video capture object and its properties.
 

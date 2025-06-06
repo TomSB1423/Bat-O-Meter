@@ -12,8 +12,8 @@ class EuclideanDistTracker:
     Assigns unique IDs to detected objects and maintains their identities across frames.
     """
 
-    all_objects: set['IdentifiedObject']
-    current_potential_objects: set['IdentifiedObject']
+    all_objects: set["IdentifiedObject"]
+    current_potential_objects: set["IdentifiedObject"]
     id_count: int
 
     def __init__(self) -> None:
@@ -28,7 +28,9 @@ class EuclideanDistTracker:
         # each time a new object id detected, the count will increase by one
         self.id_count: int = 0
 
-    def update(self, detected_objects: set['Detection']) -> tuple[set['IdentifiedObject'], set['IdentifiedObject']]:
+    def update(
+        self, detected_objects: set["Detection"]
+    ) -> tuple[set["IdentifiedObject"], set["IdentifiedObject"]]:
         """
         Updates the tracker with new detections, assigns IDs, and returns identified objects.
 
@@ -60,5 +62,5 @@ class EuclideanDistTracker:
             current_objects.add(new_obj)
             self.all_objects.add(new_obj)
             self.id_count += 1
-            
+
         return current_objects.copy(), self.current_potential_objects.difference(current_objects)

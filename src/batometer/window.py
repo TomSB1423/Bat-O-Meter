@@ -1,11 +1,20 @@
 import logging
 import tkinter as tk
+from enum import Enum
 
 import cv2
 import numpy as np
 from cv2.typing import MatLike
 
+from .frame import Frame
+
 logger = logging.getLogger("Bat-O-Meter.window")
+
+
+class OverlayMode(Enum):
+    NONE = "none"
+    TRACKS = "heatmap"
+    HEATMAP = "average"
 
 
 class ImageTransformer:
@@ -25,7 +34,7 @@ class ImageTransformer:
         """
         self.window_width, self.window_height = self._compute_dimensions()
 
-    def show_frame(self, window_name: str, img: 'MatLike') -> None:
+    def show_frame(self, window_name: str, img: "MatLike") -> None:
         """
         Displays a frame in a resizable OpenCV window.
 
@@ -42,7 +51,7 @@ class ImageTransformer:
             logger.info("Quit the program as escape was pressed")
             quit()
 
-    def overlay_two_images(self, background: 'MatLike', overlay: 'MatLike') -> 'MatLike':
+    def overlay_two_images(self, background: "MatLike", overlay: "MatLike") -> "MatLike":
         """
         Overlays one image on top of another, matching dimensions as needed.
 
@@ -57,7 +66,9 @@ class ImageTransformer:
         background, overlay = self._match_dimensions_to_img1(background, overlay)
         return self._overlay_transparent(background, overlay)
 
-    def images_side_by_side(self, img1: 'MatLike', img2: 'MatLike', img1_text: str, img2_text: str) -> 'MatLike':
+    def images_side_by_side(
+        self, img1: "MatLike", img2: "MatLike", img1_text: str, img2_text: str
+    ) -> "MatLike":
         """
         Places two images side by side with optional text labels.
 
@@ -207,3 +218,112 @@ def resize_window_to_screen(window_name: str, width: int, height: int):
     window_w = int(width * scale)
     window_h = int(height * scale)
     cv2.resizeWindow(window_name, window_w, window_h)
+
+
+def draw_overlay_text(
+    overlay_frame: "cv2.typing.MatLike", is_play: bool, current_frame_idx: int
+) -> "cv2.typing.MatLike":
+    """
+    Draws overlay text (status, controls, frame number) at the top of the frame.
+
+    Args:
+        overlay_frame ("cv2.typing.MatLike"): The frame on which to draw the overlay text.
+        is_play (bool): Is the video in play mode.
+        current_frame_idx (int): The index of the current frame (for display purposes).
+
+    Returns:
+        "cv2.typing.MatLike": The frame with the overlay text drawn on it.
+    """
+    status_text = "PAUSED" if not is_play else "PLAYING"
+    overlay_text = f"{status_text} | Space: Play/Pause | <-/->: Step | t: Toggle Tracks | a: Toggle Avg Heatmap | Esc: Quit | Frame: {current_frame_idx}"
+    cv2.rectangle(overlay_frame, (0, 0), (overlay_frame.shape[1], 40), (0, 0, 0), -1)
+    cv2.putText(
+        overlay_frame,
+        overlay_text,
+        (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        (255, 255, 255),
+        2,
+        cv2.LINE_AA,
+    )
+    return overlay_frame
+
+
+def draw_detection_rectangle(frame: "cv2.typing.MatLike", detection) -> None:
+    """
+    Draws a red rectangle for a detection on the frame.
+    """
+    cv2.rectangle(
+        frame,
+        (detection.point.x, detection.point.y),
+        (detection.point.x + detection.width, detection.point.y + detection.height),
+        (0, 0, 255),
+        3,
+    )
+
+
+def draw_tracked_object(frame: "cv2.typing.MatLike", obj) -> None:
+    """
+    Draws tracked object prediction, history, and bounding box on the frame.
+    """
+    color = ((obj.id * 70) % 256, (obj.id * 150) % 256, (obj.id * 230) % 256)
+    overlay = frame.copy()
+    cv2.circle(
+        overlay,
+        (obj.predicted_position.x, obj.predicted_position.y),
+        radius=obj.prediction_range,
+        color=color,
+        thickness=-1,
+    )
+    alpha = 0.5
+    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+    if hasattr(obj, "history") and len(obj.history) > 1:
+        last_valid_point = None
+        for i in range(1, len(obj.history)):
+            pt1 = obj.history[i - 1]
+            pt2 = obj.history[i]
+            if pt1 is not None and pt2 is not None:
+                cv2.line(frame, (pt1.x, pt1.y), (pt2.x, pt2.y), color, 2)
+                last_valid_point = pt2
+            elif pt2 is not None and last_valid_point is not None:
+                cv2.line(
+                    frame,
+                    (last_valid_point.x, last_valid_point.y),
+                    (pt2.x, pt2.y),
+                    color,
+                    2,
+                )
+                last_valid_point = pt2
+            elif pt2 is not None:
+                last_valid_point = pt2
+    cv2.putText(
+        frame,
+        str(obj.id),
+        (obj.point.x, obj.point.y - 15),
+        cv2.FONT_HERSHEY_PLAIN,
+        2,
+        color,
+        2,
+    )
+    cv2.rectangle(
+        frame,
+        (obj.point.x, obj.point.y),
+        (obj.point.x + obj.width, obj.point.y + obj.height),
+        color,
+        3,
+    )
+
+
+def draw_predicted_object(frame: "cv2.typing.MatLike", obj) -> None:
+    """
+    Draws a circle for a predicted object on the frame.
+    """
+    color = ((obj.id * 70) % 256, (obj.id * 150) % 256, (obj.id * 230) % 256)
+    cv2.circle(
+        frame,
+        (obj.predicted_position.x, obj.predicted_position.y),
+        radius=obj.prediction_range,
+        color=color,
+        thickness=3,
+    )

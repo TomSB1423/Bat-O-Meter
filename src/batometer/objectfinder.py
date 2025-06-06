@@ -15,7 +15,7 @@ class ObjectFinder:
     Detects moving objects in video frames using background subtraction and contour detection.
     """
 
-    kernel: 'MatLike' = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    kernel: "MatLike" = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
     def __init__(self) -> None:
         """
@@ -23,11 +23,11 @@ class ObjectFinder:
         """
         self.backgroundSub = cv2.createBackgroundSubtractorMOG2(
             history=500,  # no. frames to keep
-            varThreshold=80,  # sensitivity of
+            varThreshold=100,  # sensitivity of
             detectShadows=False,
         )
 
-    def initialise(self, video: 'cv2.VideoCapture') -> None:
+    def initialise(self, video: "cv2.VideoCapture") -> None:
         """
         Primes the background subtractor with initial frames to stabilize the background model.
 
@@ -44,7 +44,7 @@ class ObjectFinder:
             self.backgroundSub.apply(frame)
         logger.info("Successfully primed background subtractor")
 
-    def update(self, frame: 'Frame') -> tuple[set['Detection'], 'MatLike']:
+    def update(self, frame: "Frame") -> tuple[set["Detection"], "MatLike"]:
         """
         Updates the object finder with a new frame and returns detected objects and the mask.
 
