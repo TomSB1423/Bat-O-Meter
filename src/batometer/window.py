@@ -206,7 +206,7 @@ def resize_window_to_screen(window_name: str, width: int, height: int):
 
 
 def draw_overlay_text(
-    overlay_frame: "cv2.typing.MatLike", is_play: bool, current_frame_idx: int
+    overlay_frame: "cv2.typing.MatLike", is_play: bool, current_frame_idx: int, max_frames: int
 ) -> "cv2.typing.MatLike":
     """
     Draws overlay text (status, controls, frame number) at the top of the frame.
@@ -220,7 +220,7 @@ def draw_overlay_text(
         "cv2.typing.MatLike": The frame with the overlay text drawn on it.
     """
     status_text = "PAUSED" if not is_play else "PLAYING"
-    overlay_text = f"{status_text} | Space: Play/Pause | <-/->: Step | t: Toggle Tracks | a: Toggle Avg Heatmap | Esc: Quit | Frame: {current_frame_idx}"
+    overlay_text = f"{status_text} | Space: Play/Pause | <-/->: Step | t: Toggle Tracks | a: Toggle Avg Heatmap | Esc: Quit | Frame: {current_frame_idx} / {max_frames}"
     cv2.rectangle(overlay_frame, (0, 0), (overlay_frame.shape[1], 40), (0, 0, 0), -1)
     cv2.putText(
         overlay_frame,

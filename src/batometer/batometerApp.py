@@ -1,6 +1,8 @@
+import os
+
 import cv2
-import numpy as np
 import pandas as pd
+import logging 
 
 from .frameCache import FrameCacheEntry
 from .heatmap import Heatmap
@@ -8,6 +10,7 @@ from .inputHandler import InputHandler
 from .objectfinder import ObjectFinder
 from .objectTracker import ObjectTracker
 from .videoManager import VideoManager
+from .constants import BATOMETER
 from .window import (
     ImageTransformer,
     OverlayMode,
@@ -17,6 +20,11 @@ from .window import (
     draw_tracked_object,
     resize_window_to_screen,
 )
+
+
+FORMAT = "%(asctime)s %(levelname)-8s %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(BATOMETER)
 
 
 class BatometerApp:
@@ -33,6 +41,7 @@ class BatometerApp:
         with VideoManager(self.video_path) as video_manager:
             heatmap = Heatmap(video_manager.width, video_manager.height)
             tracker = ObjectTracker(video_manager.width, video_manager.height)
+            logger.info(f"Width: {video_manager.width} Height: {video_manager.height}")
 
             while video_manager.has_more_frames():
                 if self.input_handler.is_autoplay:
@@ -72,6 +81,33 @@ class BatometerApp:
                         )
                     )
                     self.input_handler.current_paused_frame_idx = video_manager.frame_num - 1
+                    
+                    
+                    # Generate YOLO training data
+                    txt_data = []
+                    for obj in tracked_detections:
+                        if len(obj.history) > 10:
+                            txt_data.append(f"0 {obj.point.x / video_manager.width} {obj.point.y / video_manager.width} {obj.width / video_manager.width} {obj.height / video_manager.width}")
+
+                    val_output_folder = "/Users/tom/Code/Bat-O-Meter/src/yolo/labels"
+                    png_output_folder = "/Users/tom/Code/Bat-O-Meter/src/yolo/images"
+                    if video_manager.frame_num < 554:
+                        val_output_folder += "/val"
+                        png_output_folder += "/val"
+                        os.makedirs(val_output_folder, exist_ok=True)
+                        os.makedirs(png_output_folder, exist_ok=True)
+                    else:
+                        val_output_folder += "/train"
+                        png_output_folder += "/train"
+                        os.makedirs(val_output_folder, exist_ok=True)
+                        os.makedirs(png_output_folder, exist_ok=True)
+                        
+                    png_output_path = os.path.join(png_output_folder, f"frame_{video_manager.frame_num}.png")
+                    val_output_folder = os.path.join(val_output_folder, f"frame_{video_manager.frame_num}.txt")
+
+                    with open(val_output_folder, "w") as txt_file:
+                        txt_file.write("\n".join(txt_data))
+                    cv2.imwrite(png_output_path, original_frame)
 
                 else:
                     frame_cache_entry = self.frame_cache[self.input_handler.current_paused_frame_idx]
@@ -79,7 +115,7 @@ class BatometerApp:
                     objects_frame = frame_cache_entry.objects_frame  # Ensure objects_frame is defined
 
                 frame = draw_overlay_text(
-                    frame, self.input_handler.is_autoplay, self.input_handler.current_paused_frame_idx
+                    frame, self.input_handler.is_autoplay, self.input_handler.current_paused_frame_idx, video_manager.max_frames
                 )
                 match self.input_handler.overlay_mode:
                     case OverlayMode.TRACKS:
@@ -185,6 +221,5 @@ class BatometerApp:
         cv2.imwrite(
             heatmap_output_path, self.frame_cache[self.input_handler.current_paused_frame_idx].heatmap_frame
         )
-        
-        cv2.destroyAllWindows()
 
+        cv2.destroyAllWindows()

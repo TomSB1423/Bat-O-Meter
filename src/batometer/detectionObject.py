@@ -79,7 +79,7 @@ class IdentifiedObject(Detection):
         """Hash based on the unique id."""
         return hash(self.id)
 
-    def update_location(self, point: Optional[Point]) -> None:
+    def update(self, point: Optional[Point], width=0, height=0) -> None:
         """
         Update the object's location and prediction based on a new point.
         If point is None, increment missed_tracks and update prediction.
@@ -114,6 +114,8 @@ class IdentifiedObject(Detection):
         predicted_y = self.point.y + self.speed[1]
         self.predicted_position = Point(int(predicted_x), int(predicted_y))
         self.history.append(point)
+        self.width = width
+        self.height = height
 
     def is_self(self, det: Detection) -> bool:
         """

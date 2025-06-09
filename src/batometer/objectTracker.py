@@ -56,13 +56,13 @@ class ObjectTracker:
             matched = False
             for det in detected_objects:
                 if obj.is_self(det):
-                    obj.update_location(det.point)
+                    obj.update(det.point, det.width, det.height)
                     detected_objects.remove(det)
                     current_objects.add(obj)
                     matched = True
                     break
             if not matched:
-                obj.update_location(None)
+                obj.update(None)
         for det in detected_objects:
             new_obj = IdentifiedObject(self.id_count, det)
             self.current_potential_objects.add(new_obj)
@@ -71,7 +71,7 @@ class ObjectTracker:
             self.id_count += 1
 
         return current_objects.copy(), self.current_potential_objects.difference(current_objects)
-    
+
     def update_heatmap(self, obj: IdentifiedObject):
         left_p = 0
         tracks_frame = np.zeros_like(self.pixel_heatmap, dtype=np.uint8)

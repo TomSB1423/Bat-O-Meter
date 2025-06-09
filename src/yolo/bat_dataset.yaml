@@ -1,0 +1,5 @@
+train: /Users/tom/Code/Bat-O-Meter/src/yolo/images/train
+val: /Users/tom/Code/Bat-O-Meter/src/yolo/images/val
+
+nc: 1
+names: ['bat']

@@ -15,7 +15,7 @@ logger = logging.getLogger(BATOMETER)
 
 class VideoManager(AbstractContextManager):
     def __init__(self, video_path):
-        self.video, self.width, self.height, self.fps, self.noFrames, self.frame_time = self._load_video(
+        self.video, self.width, self.height, self.fps, self.max_frames, self.frame_time = self._load_video(
             video_path
         )
         self.video_path = Path(video_path)
@@ -91,7 +91,7 @@ class VideoManager(AbstractContextManager):
         Returns:
             bool: True if there are more frames to read, False otherwise.
         """
-        return self.frame_num < self.noFrames
+        return self.frame_num < self.max_frames
 
     def release(self):
         self.video.release()

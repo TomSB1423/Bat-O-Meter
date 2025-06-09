@@ -3,8 +3,8 @@
 /.temp
 .DS_Store
 videos
-.csv
-.png
+*.csv
+*.png
 !assets/
 
 # Byte-compiled / optimized / DLL files
