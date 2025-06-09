@@ -187,3 +187,4 @@ class BatometerApp:
         )
         
         cv2.destroyAllWindows()
+

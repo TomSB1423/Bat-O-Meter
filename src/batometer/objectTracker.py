@@ -29,7 +29,8 @@ class ObjectTracker:
         self.height = height
         self.all_objects: set[IdentifiedObject] = set()
         self.current_potential_objects: set[IdentifiedObject] = set()
-        self.pixel_heatmap = np.zeros((self.height, self.width, 3), dtype=np.uint16)
+        self.pixel_heatmap = np.zeros((self.height, self.width), dtype=np.float32)
+        self.max_missed_frames = 10
         # Keep the count of the IDs
         # each time a new object id detected, the count will increase by one
         self.id_count: int = 0
@@ -46,26 +47,10 @@ class ObjectTracker:
         Returns:
             set[IdentifiedObject]: Set of objects with assigned unique IDs for the current frame.
         """
-        MAX_MISSED_FRAMES = 10
-        for obj in list(self.current_potential_objects):  # Iterate over a copy of the set
-            if obj.missed_tracks > MAX_MISSED_FRAMES:
+        for obj in list(self.current_potential_objects):
+            self.update_heatmap(obj)
+            if obj.missed_tracks > self.max_missed_frames:
                 self.current_potential_objects.remove(obj)
-                left_p = 0
-                tracks_frame = np.zeros_like(self.pixel_heatmap, dtype=np.uint8)
-                while left_p < len(obj.history) - 1:
-                    pt1 = obj.history[left_p]
-                    # Move the second pointer to the next non-None point
-                    right_p = left_p + 1
-                    while right_p < len(obj.history) and obj.history[right_p] is None:
-                        right_p += 1
-
-                    if right_p < len(obj.history):
-                        pt2 = obj.history[right_p]
-                        if pt1 is not None and pt2 is not None:
-                            cv2.line(tracks_frame, (pt1.x, pt1.y), (pt2.x, pt2.y), color=(1,), thickness=3)
-                    # Move the first pointer to the second pointer's position
-                    left_p = right_p
-                self.pixel_heatmap += tracks_frame
         current_objects: set[IdentifiedObject] = set()
         for obj in self.current_potential_objects:
             matched = False
@@ -86,6 +71,24 @@ class ObjectTracker:
             self.id_count += 1
 
         return current_objects.copy(), self.current_potential_objects.difference(current_objects)
+    
+    def update_heatmap(self, obj: IdentifiedObject):
+        left_p = 0
+        tracks_frame = np.zeros_like(self.pixel_heatmap, dtype=np.uint8)
+        while left_p < len(obj.history) - 1:
+            pt1 = obj.history[left_p]
+            # Move the second pointer to the next non-None point
+            right_p = left_p + 1
+            while right_p < len(obj.history) and obj.history[right_p] is None:
+                right_p += 1
+
+            if right_p < len(obj.history):
+                pt2 = obj.history[right_p]
+                if pt1 is not None and pt2 is not None:
+                    cv2.line(tracks_frame, (pt1.x, pt1.y), (pt2.x, pt2.y), color=(1,), thickness=2)
+            # Move the first pointer to the second pointer's position
+            left_p = right_p
+        self.pixel_heatmap += tracks_frame
 
     def create_overlay(self, frame):
         long_tracks = set(obj for obj in self.current_potential_objects.union(self.all_objects))
@@ -117,16 +120,15 @@ class ObjectTracker:
         blue_background[:, :] = (255, 0, 0)  # Blue in BGR
         overlay = cv2.addWeighted(frame, 0.1, tracks_frame, 1.0, 0)
         overlay = cv2.addWeighted(overlay, 1.0, frame, 1.0, 0)
-        cv2.imshow("track", self.create_heatmap_overlay(frame))
         return overlay
 
     def create_heatmap_overlay(self, frame):
-        log_heatmap = np.log(self.pixel_heatmap + 1)
-        heatmap_img = np.zeros_like(log_heatmap, dtype=np.uint8)
-        cv2.normalize(log_heatmap, heatmap_img, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-        heatmap_img = cv2.applyColorMap(heatmap_img, cv2.COLORMAP_JET)
+        log_heatmap = self.pixel_heatmap
+        heatmap_prob = np.zeros_like(log_heatmap, dtype=np.uint8)
+        cv2.normalize(log_heatmap, heatmap_prob, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+        heatmap_img = cv2.applyColorMap(heatmap_prob, cv2.COLORMAP_JET)
         resized_heatmap_img = cv2.resize(heatmap_img, (self.width, self.height))
-        final_heatmap_img = cv2.addWeighted(frame, 0.6, resized_heatmap_img, 0.4, 0)
+        final_heatmap_img = cv2.addWeighted(frame, 0.7, resized_heatmap_img, 0.3, 0)
         return final_heatmap_img
 
     # Add a method to calculate bat likelihood based on movement patterns
