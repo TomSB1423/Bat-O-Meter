@@ -1,0 +1,6 @@
+Object ID,Incoming Direction,Outgoing Direction,Likelihood of Bat
+1,up,up,1.0
+2,up,up,1.0
+4,left,right,1.0
+7,left,right,1.0
+8,up,up,1.0

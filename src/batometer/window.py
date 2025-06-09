@@ -6,14 +6,14 @@ import cv2
 import numpy as np
 from cv2.typing import MatLike
 
-
 logger = logging.getLogger("Bat-O-Meter.window")
 
 
 class OverlayMode(Enum):
     NONE = "none"
-    TRACKS = "heatmap"
-    HEATMAP = "average"
+    TRACKS = "tracks"
+    FLOW = "flow"
+    HEATMAP = "heatmap"
 
 
 class ImageTransformer:
@@ -54,8 +54,7 @@ class ImageTransformer:
         """
         Overlays one image on top of another, matching dimensions as needed.
 
-        Args:
-            background (MatLike): Background image.
+        Args: background (MatLike): Background image.
             overlay (MatLike): Overlay image.
 
         Returns:
@@ -155,19 +154,6 @@ class ImageTransformer:
             thickness=self.TEXT_THICKNESS,
         )
         return final_image
-
-        # TODO: add mouse clicks to record position of birds
-        # def mouse_callback(event, x, y, flags, params):
-        #     global mouseX, mouseY
-        #     if event == cv2.EVENT_LBUTTONDBLCLK:
-        #         cv2.circle(final_image, (x, y), 100, (255, 0, 0), -1)
-        #         mouseX, mouseY = x, y
-        #     if event == 2:
-        #         print(
-        #             f"coords {x, y}, colors Blue- {final_image[y, x, 0]} , Green- {final_image[y, x, 1]}, Red- {final_image[y, x, 2]} "
-        #         )
-
-        # cv2.setMouseCallback(self.WINDOW_NAME, mouse_callback)
 
     def scale_frame_to_monitor(self, frame: MatLike) -> None:
         height, width = frame.shape[:2]
@@ -325,4 +311,13 @@ def draw_predicted_object(frame: "cv2.typing.MatLike", obj) -> None:
         radius=obj.prediction_range,
         color=color,
         thickness=3,
+    )
+    cv2.putText(
+        frame,
+        str(obj.id),
+        (obj.predicted_position.x, obj.predicted_position.y - 40),
+        cv2.FONT_HERSHEY_PLAIN,
+        2,
+        color,
+        2,
     )

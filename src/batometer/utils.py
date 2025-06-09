@@ -2,7 +2,6 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import Tuple
 
 import cv2
 from cv2.typing import MatLike
@@ -14,59 +13,6 @@ logger = logging.getLogger(f"{BATOMETER}.utils")
 TEMP_DIR = os.path.join(Path(__file__).parent.parent, ".temp")
 if os.path.exists(TEMP_DIR):
     shutil.rmtree(TEMP_DIR)
-
-
-def load_video(path_str: str) -> tuple["cv2.VideoCapture", int, int, int, int]:
-    """
-    Loads a video from the given path and returns the video capture object and its properties.
-
-    Args:
-        path_str (str): Path to the video file.
-
-    Returns:
-        tuple[cv2.VideoCapture, int, int, int, int]:
-            - video (cv2.VideoCapture): The video capture object.
-            - width (int): Frame width.
-            - height (int): Frame height.
-            - fps (int): Frames per second.
-            - noFrames (int): Total number of frames.
-    Raises:
-        FileNotFoundError: If the video file does not exist.
-    """
-    path = Path(path_str)
-    if not os.path.isfile(path):
-        logger.error(f"Video file does not exist: {path}")
-        raise FileNotFoundError(f"Video file does not exist: {path}")
-    video = cv2.VideoCapture(str(path))
-    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-    width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = int(video.get(cv2.CAP_PROP_FPS))
-    noFrames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-    logger.info(
-        f"Video information // Width: {width} - Height: {height} - FPS: {fps} - numFrames: {noFrames} - "
-        f"Length: {calculate_video_time_from_frame_num(noFrames, fps)}"
-    )
-    return video, width, height, fps, noFrames
-
-
-def calculate_video_time_from_frame_num(frame_num: int, fps: int) -> str:
-    """
-    Calculates the video time string from a frame number and fps.
-
-    Args:
-        frame_num (int): The frame number.
-        fps (int): Frames per second.
-
-    Returns:
-        str: Time in HH:MM:SS format.
-    """
-    hours = int(frame_num / (fps * 3600))
-    minutes = int(frame_num / (fps * 60) % 60)
-    seconds = int((frame_num / fps) % 60)
-    milli_seconds = int(frame_num % fps)
-    time = "{0:02d}:{1:02d}:{2:02d}:{3:02d}".format(hours, minutes, seconds, milli_seconds)
-    return time
 
 
 def save_image_to_temp(img: MatLike, frame_num: int) -> None:

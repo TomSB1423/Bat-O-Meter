@@ -1,5 +1,5 @@
 from batometer.detectionObject import Detection, Point
-from batometer.tracker import EuclideanDistTracker
+from batometer.objectTracker import ObjectTracker
 from tests.visualization import visualize_tracking
 
 
@@ -7,7 +7,7 @@ def test_tracker_tracks_moving_object(request):
     """
     Test that the tracker assigns a consistent ID to a moving object across frames.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     # Simulate a moving object across 5 frames
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5)],
@@ -33,7 +33,7 @@ def test_tracker_handles_multiple_objects(request):
     """
     Test that the tracker assigns different IDs to two objects moving in parallel.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5), Detection(Point(100, 100), 5, 5)],
         [Detection(Point(15, 12), 5, 5), Detection(Point(105, 102), 5, 5)],
@@ -58,7 +58,7 @@ def test_tracker_new_object_gets_new_id(request):
     """
     Test that a new object entering the frame gets a new ID.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5)],
         [Detection(Point(15, 12), 5, 5)],
@@ -81,7 +81,7 @@ def test_tracker_crossing_objects(request):
     """
     Test that the tracker does not swap IDs when two objects cross paths.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5), Detection(Point(100, 100), 5, 5)],
         [Detection(Point(30, 30), 5, 5), Detection(Point(80, 80), 5, 5)],
@@ -108,7 +108,7 @@ def test_tracker_object_leaves_and_reenters(request):
     """
     Test that an object leaving and re-entering the frame gets a new ID.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5)],
         [],  # Object leaves
@@ -131,7 +131,7 @@ def test_tracker_variable_speed(request):
     """
     Test that the tracker can handle an object moving at variable speed.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5)],
         [Detection(Point(20, 10), 5, 5)],
@@ -156,7 +156,7 @@ def test_tracker_empty_frame(request):
     """
     Test that the tracker handles frames with no detections (empty frame) gracefully.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5)],
         [],  # No detections
@@ -177,7 +177,7 @@ def test_tracker_overlapping_objects(request):
     """
     Test that the tracker does not merge IDs when two objects overlap and then separate.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 10, 10), Detection(Point(100, 100), 10, 10)],
         [Detection(Point(50, 50), 20, 20), Detection(Point(55, 55), 20, 20)],
@@ -201,7 +201,7 @@ def test_tracker_many_objects(request):
     """
     Test that the tracker can handle a large number of objects in a single frame.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10 * i, 10 * i), 5, 5) for i in range(10)],
         [Detection(Point(10 * i + 2, 10 * i + 2), 5, 5) for i in range(10)],
@@ -224,7 +224,7 @@ def test_tracker_bounding_box_change(request):
     """
     Test that the tracker maintains the same ID when the bounding box size/shape changes.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(10, 10), 5, 5)],
         [Detection(Point(12, 10), 10, 8)],  # Size/shape change
@@ -246,7 +246,7 @@ def test_tracker_out_of_bounds(request):
     """
     Test that the tracker handles detections with out-of-bounds coordinates gracefully.
     """
-    tracker = EuclideanDistTracker()
+    tracker = ObjectTracker()
     detections_per_frame = [
         [Detection(Point(-10, -10), 5, 5)],  # Negative coords
         [Detection(Point(410, 410), 5, 5)],  # Outside window

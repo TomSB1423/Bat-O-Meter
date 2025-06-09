@@ -5,3 +5,4 @@ pytest
 black
 flake8
 mypy
+pandas-stubs

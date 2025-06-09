@@ -41,7 +41,7 @@ class Heatmap:
                     self.direction_sum_grid[grid_y, grid_x, 1] += dy
                     self.direction_count_grid[grid_y, grid_x] += 1
 
-    def add_overlay(self, frame: "cv2.typing.MatLike") -> "cv2.typing.MatLike":
+    def create_flow_overlay(self, frame: "cv2.typing.MatLike") -> "cv2.typing.MatLike":
         arrow_overlay = frame.copy()
         for gy in range(self.grid_h):
             for gx in range(self.grid_w):
