@@ -23,7 +23,7 @@ Files:
 
 The project in its current state applies a background subtracter to isolate moving objects. Tracking and object identification is then needed.
 
-![Demo Gif](./assets/demo.gif)
+![Demo Gif](./assets/demo.mp4)
 
 Individual isolations:
 
@@ -31,14 +31,14 @@ Individual isolations:
 
 # Installation
 
-1. Install python 3.8.10
+1. Install python 3.9.18
 
 2. Set up virtual environment:
 
 ```shell
-    python -m venv .venv
-    .venv/Scripts/activate
-    pip install -r requirements.txt
+python -m venv .venv
+.venv/Scripts/activate
+pip install -r requirements.txt
 ```
 
 3. Run the program
