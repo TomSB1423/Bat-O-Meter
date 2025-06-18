@@ -23,9 +23,7 @@ Files:
 
 The project in its current state applies a background subtracter to isolate moving objects. Tracking and object identification is then needed.
 
- <video src="./assets/demo.mp4" placeholder="./assets/demo.mp4" autoplay loop controls muted title="Demo Gif">
-    Sorry, your browser doesn't support HTML 5 video.
-   </video>
+https://github.com/user-attachments/assets/66d0baad-3234-4ffb-9f05-0c775968ffef
 
 Individual isolations:
 
